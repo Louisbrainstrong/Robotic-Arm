@@ -139,12 +139,8 @@ void main (void)
 int PIDcalculation (int error){
 	int output;
 	
-<<<<<<< HEAD
-	if(error<-1500)error=100; //If HCTL overflowed into 1900 region, error will be large and negative
-	hi:
+	if(error<-1500)error=80; //If HCTL overflowed into 1900 region, error will be large and negative
 	
-=======
->>>>>>> 501677b800d6b65ce89290afcdd156936ffabd34
 	/*Compute working error variables*/
 	errSum += error * dT;
 	dErr = (error - fivePointMovingAvg(prevError)); //Dividing by dT makes this huge
