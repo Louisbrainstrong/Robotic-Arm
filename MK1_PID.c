@@ -30,21 +30,21 @@
 #define TIMER1_RELOAD_VALUE (65536L-(CLK/(12L*FREQ)))
 
 //HCTL
-#define RST1 P3_5	 //[PCB] P1_1
+#define RST1 P1_1	 //[PCB] P1_1
 #define OE1 P3_7	 //[PCB] P3_6
 #define UD1 P3_2	 //[PCB] P3_2
-#define RST2 P3_5	 //[PCB] P1_2
+#define RST2 P1_2	 //[PCB] P1_2
 #define OE2 P3_7	 //[PCB] P3_7
 #define UD2 P3_3	 //[PCB] P3_3
 #define SEL1 P4_3
-#define SEL2 P4_4		
+#define SEL2 P4_4	
 
 // MCP3008
 #define CE	  P0_3	 //[PCB] P1_4
 
 //Function Prototypes
 void waitms (void);
-void resetHCTL(void);
+void resetHCTL(int);
 unsigned int decode (void);
 unsigned int readBits(void);
 void SPIWrite(unsigned char);
@@ -53,8 +53,8 @@ int PIDcalculation(int);
 int fivePointMovingAvg(int);
 
 //MOTOR PWMs
-#define M1 P3_3		 //[PCB] P3_4
-#define M2 P3_4      //[PCB] P3_5
+#define M1 P3_4		 //[PCB] P3_4
+#define M2 P3_5      //[PCB] P3_5
 
 // PID GAIN VALUES
 #define kp  1.000F //6.7334    
@@ -63,6 +63,7 @@ int fivePointMovingAvg(int);
 #define dT  0.00083333F
 volatile int position = 1111;
 volatile int setPoint = 808;
+volatile int ySetPoint = 909;
 volatile int error = 0;
 volatile int prevError = 0;
 volatile int past5[5]; //Array of previous errors
@@ -90,25 +91,28 @@ unsigned char _c51_external_startup(void)
     
     //Initialize Timer 1 for ISR
     TMOD=0B_0001_0001; // 0001 is 16-bit mode (Enhanced Timer 1, p77 in docs)
-    TCONB=0B_01000000; //TCONB(7) = P3_5 PWM and TCONB(6) = P3_4 for PWM on Timer0
-    //TCONB=0B_11000000; //P3_5 PWM ENABLED 
+    //TCONB=0B_01000000; //TCONB(7) = P3_5 PWM and TCONB(6) = P3_4 for PWM on Timer0
+    TCONB=0B_11000000; //P3_5 PWM ENABLED 
     
     TR0=0;
     TR0=1;
+   	TR1=1;
  	
  	RL1=250;
  	RL0=250; 
  	
 	RH1=128; //Pin3.5
 	RH0=128; //Pin3.4
+	
     return 0;
 }
 
 void main (void)
 {	
 	int temp_pwm = 88;
-	resetHCTL();
-
+	
+	resetHCTL(1);
+	resetHCTL(2);
 	
 	//Reset everything
 	printf( FORE_BACK, COLOR_BLACK, COLOR_WHITE );
@@ -116,15 +120,19 @@ void main (void)
 	printf( GOTO_YX, 1, 1 );
 	printf("Motor Angle      :::");
 	printf("\nController Angle ::: ");
+	printf("\nLinear Position  ::: ");
 	
 	while(1)
 	{		
 		printf( GOTO_YX, 1, 21 );
 		position = decode()/33.33;     //HCTL1 Reading in degrees
 		printf("%i     ", position);
-		setPoint = GetADC(0)/3.196;	   //ADC1 Reading in degrees
+		setPoint = GetADC(2)/3.196;	   //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
 		printf( GOTO_YX, 2, 21 );
 		printf("%i    ", setPoint);
+		ySetPoint = GetADC(1)/9;	//Linear Pot Reading out of 100
+		printf( GOTO_YX, 3, 21 );
+		printf("%i    ", ySetPoint);
 		
 		error = setPoint - position;
 		
@@ -139,21 +147,20 @@ void main (void)
 int PIDcalculation (int error){
 	int output;
 	
-	if(error<-1500)error=80; //If HCTL overflowed into 1900 region, error will be large and negative
+	/*Control for HCTL Overflow*/
+	if(error<-1700)
+		error=50;
 	
 	/*Compute working error variables*/
 	errSum += error * dT;
 	dErr = (error - fivePointMovingAvg(prevError)); //Dividing by dT makes this huge
 	
-	//	printf("\n\n%.3f      %.3f       %.3f \n", error, errSum, dErr);
-	
 	/*Compute PID Output*/
-	output = kp * error + ki * errSum / 3 + kd * dErr / 10;
-	output *= 1.433;
+	output = kp * error + ki * errSum + kd * dErr;
 	
 	/* Limit error */
 	if(output > 128) output = 128;
-	else if (output < -128) output = -128;
+	else if (output < -128) output = -127; //OVERFLOWS AT 255
 	output = 128 - output;
 	
 	pwm_temp = output;
@@ -193,12 +200,13 @@ ret
 _endasm;
 }
 
-void resetHCTL(void)
+void resetHCTL (int select)
 {
-//Reset Encoder to 0 -- uses INDEX pin
-	P3_5 = 0; //Clear HCTL
-    waitms;
-    P3_5 = 1;
+	if(select = 1){
+		P1_1 = 0; //Clear HCTL
+	    waitms;
+	    P1_1 = 1;
+	}
 }
 
 
@@ -212,7 +220,7 @@ void resetHCTL(void)
 // SEL2 -  	P4.4   - pin 17
 // OE   -  	P3.7   - pin 5
 // U/D	-	P3.6   - pin 6
-// RST	-	P3.5   - pin 8
+// RST	-	P1.1   - pin 8
 // Y	-		   - pin 9
 // G	-	  	   - pin 10
 // D0   -	P2.0   - pin 2
