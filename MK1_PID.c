@@ -130,7 +130,7 @@ void main (void)
 		setPoint = GetADC(2)/3.196;	   //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
 		printf( GOTO_YX, 2, 21 );
 		printf("%i    ", setPoint);
-		ySetPoint = GetADC(1)/9;	//Linear Pot Reading out of 100
+		ySetPoint = GetADC(1)/8.9;	//Linear Pot Reading out of 100
 		printf( GOTO_YX, 3, 21 );
 		printf("%i    ", ySetPoint);
 		
