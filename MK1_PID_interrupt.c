@@ -126,9 +126,6 @@ unsigned char _c51_external_startup(void)
     CP_RL2=0;                  /* reload mode */
     EA=1;                      /* interupt enable */
     ET2=1;                     /* enable timer2 interrupt */
-    TR2=1;                     /* timer2 run */
-
-
 
     return 0;
 }
@@ -194,6 +191,12 @@ void main (void)
     printf("\nLinear Setpoint  ::: ");
     printf("\nOverflow Count   ::: ");
     
+    /*PWM to 0 point First*/
+	while(GetADC(1)<5){
+		RH0 = 0;
+	}
+   	TR2=1;                     /* timer2 run */
+   	
     while(1);
 }
 
