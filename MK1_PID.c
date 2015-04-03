@@ -62,7 +62,7 @@ int fivePointMovingAvg(int);
 #define kd  0.069F //0.4368
 #define dT  0.00083333F
 volatile int position = 1111;
-volatile int linposition = 2222;
+volatile int linposition = 2222.2;
 volatile int angSetPoint = 808;
 volatile int linSetPoint = 909;
 volatile int error = 0;
@@ -92,8 +92,8 @@ unsigned char _c51_external_startup(void)
     
     //Initialize Timer 1 for ISR
     TMOD=0B_0001_0001; // 0001 is 16-bit mode (Enhanced Timer 1, p77 in docs)
-    //TCONB=0B_01000000; //TCONB(7) = P3_5 PWM and TCONB(6) = P3_4 for PWM on Timer0
-    TCONB=0B_11000000; //P3_5 PWM ENABLED 
+    //TCONB=0B_01000000; //TCONB(7) = P3_5 PWM on Timer1 and TCONB(6) = P3_4 for PWM on Timer0
+    TCONB=0B_11000000; //P3_4 & P3_5 PWM ENABLED 
     
     TR0=0;
     TR0=1;
@@ -110,7 +110,9 @@ unsigned char _c51_external_startup(void)
 
 void main (void)
 {	
-	int temp_pwm = 88;
+	int linear_pwm, count = 0;
+	int circles = 0;
+	bit overflow = 0;
 	
 	resetHCTL(1);
 	resetHCTL(2);
@@ -120,38 +122,57 @@ void main (void)
 	printf( CLEAR_SCREEN );
 	printf( GOTO_YX, 1, 1 );
 	printf("Motor Angle      :::");
-	printf("\nLin Motor Angle  :::");
-	printf("\nSetpoint Angle   ::: ");
-	printf("\nLinear Position  ::: ");
+	printf("\nLin Motor Position :::");
+	printf("\nSetpoint Angle     ::: ");
+	printf("\nLinear Setpoint    ::: ");
+	printf("\nCircle Count       ::: ");
+	
+	
+	/*PWM to 0 point First*/
+	while(GetADC(1)<5){
+		RH0 = 0;
+	}
 	
 	while(1)
-	{		
+	{	
+		/* STEPHANE's ANGULAR MOTOR */
 		printf( GOTO_YX, 1, 22 );
-		position = decode(1);          //HCTL1 NEEDS CONVERSION---(Sensor Resolution*4/360)*(Gear Ratio)
+		position = decode(1)/33.3333;          //HCTL1 (Sensor Resolution*4/360)*(Gear Ratio) = 6*4*500/360 = 33.333333
 		printf("%i     ", position);
 		
-		printf( GOTO_YX, 2, 22 );
-		linposition = decode(2);       //HCTL2 (Sensor Resolution*4/360)*(360degrees/cm)*(Gear Ratio)   33.33;
-		printf("%i     ", linposition);
-		
 		angSetPoint = GetADC(1)/3.196;	   //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
-		printf( GOTO_YX, 3, 22 );
-		if(angSetPoint > 300)resetHCTL(2);
+		printf( GOTO_YX, 2, 22 );
 		printf("%i    ", angSetPoint);
 		
-		linSetPoint = GetADC(0)/(9.3);	//Linear Pot Reading out of 100
+		/* LINEAR ACTUATION MOTOR */
+		circles = decode(2)/17.777777;
+		
+		if(overflow == 1){
+			if(UD2 == 1)count++;
+			else if(UD2 == 0)count--;
+			overflow = 0;
+		}
+		
+		if(circles>=3660 && circles<=3690)overflow = 1;
+		
+		printf( GOTO_YX, 3, 22 );
+		linposition = circles; //17.777777;       //HCTL2 (Sensor Resolution*4/360)*(Gear Ratio) = 17.777777777 = 1 count per turn;
+		printf("%i     ", linposition);
+		
+		linSetPoint = GetADC(1);	//Linear Pot Reading out of 1000
 		printf( GOTO_YX, 4, 22 );
-		if(linSetPoint>80)resetHCTL(1);
 		printf("%i    ", linSetPoint);
 		
-		error = angSetPoint - position;
+		error = linSetPoint - linposition;
 		
-		temp_pwm = PIDcalculation(error); //WILL CHANGE WITH dT
-			
-			printf("\nPWM ::: %i    ", temp_pwm);
-			
-		//RH0 = temp_pwm;
-		RH0 = linSetPoint + 28;
+		linear_pwm = PIDcalculation(error); //WILL CHANGE WITH dT
+		
+		if(linSetPoint < 10)RH0=0;
+		else if(linSetPoint > 1000)RH0=255;
+		else RH0 = linear_pwm;
+		
+		printf( GOTO_YX, 5, 22 );
+		printf("%i    ", count);
 	}	
 }
 
