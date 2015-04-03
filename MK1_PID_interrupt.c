@@ -51,18 +51,21 @@ unsigned int decode (int);
 unsigned int readBits(int);
 void SPIWrite(unsigned char);
 unsigned int GetADC(unsigned char);
-int PIDcalculation(int);
+int PIDcalculation(int, int);
 int fivePointMovingAvg(int);
+void linearOverflowCount (int);
 
 //MOTOR PWMs
 #define M1 P3_4      //[PCB] P3_4
 #define M2 P3_5      //[PCB] P3_5
 
 // PID GAIN VALUES
+/*
 #define kp  1.000F //6.7334    
 #define ki  0.187F //1.1851
 #define kd  0.069F //0.4368
-#define dT  0.00083333F
+*/
+#define dT  0.001F
 volatile int position = 1111;
 volatile int linposition = 2222;
 volatile int angSetPoint = 808;
@@ -74,8 +77,10 @@ volatile int errSum = 0;
 volatile int dErr = 0;
 volatile int pwm_temp = 0;
 volatile int linear_pwm = 0;
-volatile int count = 0;
+volatile int count = 1;
 volatile bit overflow = 0;
+volatile bit underflow = 0;
+volatile float kp, ki, kd = 0;
 
 unsigned char _c51_external_startup(void)
 {
@@ -147,25 +152,23 @@ void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 		printf("%i    ", angSetPoint);
 		
 		/* LINEAR ACTUATION MOTOR */
-		printf( GOTO_YX, 3, 22 );    
+		    
 		linposition = decode(2)/17.777777;   //HCTL2 (Sensor Resolution*4/360)*(Gear Ratio) = 17.777777777 = 1 count per turn;
-		printf("%i     ", linposition);
-		
-		if(overflow == 1){
-			if(linposition < 1000)count++;
-			else if(UD2 == 0)count--;
-			overflow = 0;
-		}
-		
-		if(linposition>=3660 && linposition<=3690)overflow = 1;
+		linearOverflowCount(linposition);
 		
 		linSetPoint = GetADC(1);	//Linear Pot Reading out of 1000
 		printf( GOTO_YX, 4, 22 );
 		printf("%i    ", linSetPoint);
 		
+		/* Normalize linposition */
+		
+		linposition = (linposition + (count*3686))/51604;
+		printf( GOTO_YX, 3, 22 );
+		printf("%i     ", linposition);
+		
 		error = linSetPoint - linposition;
 		
-		linear_pwm = PIDcalculation(error); //WILL CHANGE WITH dT
+		linear_pwm = PIDcalculation(error, 2); //WILL CHANGE WITH dT
 		
 		if(linSetPoint < 10)RH0=0;
 		else if(linSetPoint > 1000)RH0=255;
@@ -192,12 +195,63 @@ void main (void)
     printf("\nOverflow Count   ::: ");
     
     /*PWM to 0 point First*/
-	while(GetADC(1)<5){
+	while(GetADC(1)<10){
 		RH0 = 0;
 	}
+	
    	TR2=1;                     /* timer2 run */
    	
     while(1);
+}
+
+void linearOverflowCount (int linposition){
+		if(overflow == 1){
+			if(linposition < 1000)count++;
+			overflow = 0;
+		}
+		
+		if(underflow == 1){
+			if(linposition > 3000)count--;
+			underflow = 0;
+		}
+		
+		if(linposition > 3590)overflow = 1;
+		else if(linposition < 50)underflow = 1;
+}
+
+int PIDcalculation (int error, int mselect){
+    int output;
+    
+    if(mselect == 2){
+    	kp = 1;
+    	ki = 0.2;
+    	kd = 0.1;
+    }
+    
+    /*Control for HCTL Overflow*/
+    //if(error<-1700)
+    //    error=50;
+    
+    /*Compute working error variables*/
+    errSum += error * dT;
+    dErr = (error - fivePointMovingAvg(prevError)); //Dividing by dT makes this huge
+    
+    /*Compute PID Output*/
+    output = kp * error + ki * errSum + kd * dErr;
+    
+    /* Limit error */
+    if(output > 128) output = 128;
+    else if (output < -128) output = -127; //OVERFLOWS AT 255
+    output = 128 - output;
+    
+    if(count == 1 || count >= 14)output = 128; // STOP MOTOR AT 'Boundaries'
+    
+    pwm_temp = output;
+    
+    prevError = error;
+    
+    //return output;
+    return pwm_temp;
 }
 
 void resetHCTL (int select)
@@ -212,33 +266,6 @@ void resetHCTL (int select)
         waitms;
         RST2 = 1;
     }
-}
-
-int PIDcalculation (int error){
-    int output;
-    
-    /*Control for HCTL Overflow*/
-    if(error<-1700)
-        error=50;
-    
-    /*Compute working error variables*/
-    errSum += error * dT;
-    dErr = (error - fivePointMovingAvg(prevError)); //Dividing by dT makes this huge
-    
-    /*Compute PID Output*/
-    output = kp * error + ki * errSum + kd * dErr;
-    
-    /* Limit error */
-    if(output > 128) output = 128;
-    else if (output < -128) output = -127; //OVERFLOWS AT 255
-    output = 128 - output;
-    
-    pwm_temp = output;
-    
-    prevError = error;
-    
-    //return output;
-    return pwm_temp;
 }
 
 int fivePointMovingAvg (int prevError){
