@@ -138,19 +138,32 @@ unsigned char _c51_external_startup(void)
  */
 void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 {
-    position = decode(1);          //HCTL1 NEEDS CONVERSION---(Sensor Resolution*4/360)*(Gear Ratio)
+
+    position = decode(1);               //HCTL1 NEEDS CONVERSION---(Sensor Resolution*4/360)*(Gear Ratio)
     
-    linposition = decode(2);       //HCTL2 (Sensor Resolution*4/360)*(360degrees/cm)*(Gear Ratio)   33.33;
+    linposition = decode(2);            //HCTL2 (Sensor Resolution*4/360)*(360degrees/cm)*(Gear Ratio)   33.33;
 
-    angSetPoint = GetADC(1)/3.196;     //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
+    angSetPoint = GetADC(1)/3.196;      //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
 
-    linSetPoint = GetADC(0)/(9.3);  //Linear Pot Reading out of 100
+    linSetPoint = GetADC(0)/(9.3);      //Linear Pot Reading out of 100
 
     error = angSetPoint - position;
     
     temp_pwm = PIDcalculation(error); //WILL CHANGE WITH dT
 
     RH0 = temp_pwm;
+
+    printf( GOTO_YX, 2, 22 );
+    printf("%i     ", linposition);
+    
+    printf( GOTO_YX, 3, 22 );
+    printf("%i    ", angSetPoint);
+    
+    printf( GOTO_YX, 4, 22 );
+    printf("%i    ", linSetPoint);
+    
+    printf("\nPWM ::: %i    ", temp_pwm);
+    
         
     /*P1_3 = !P1_3;					 P1.3 toggle when interrupt. 
 	TF2 = 0;							 reset interrupt flag */
@@ -171,25 +184,7 @@ void main (void)
 	printf("\nSetpoint Angle   ::: ");
 	printf("\nLinear Position  ::: ");
 	
-	while(1)
-	{		
-		printf( GOTO_YX, 1, 22 );
-		printf("%i     ", position);
-		
-		printf( GOTO_YX, 2, 22 );
-		printf("%i     ", linposition);
-		
-        printf( GOTO_YX, 3, 22 );
-		printf("%i    ", angSetPoint);
-		
-        printf( GOTO_YX, 4, 22 );
-		printf("%i    ", linSetPoint);
-		
-            printf("\nPWM ::: %i    ", temp_pwm);
-            
-			
-    
-	}	
+	while(1);
 }
 
 void resetHCTL (int select)
