@@ -31,7 +31,7 @@
 
 //HCTL
 #define RST1 P1_1	 //[PCB] P1_1
-#define OE1 P3_7	 //[PCB] P3_6
+#define OE1 P3_6	 //[PCB] P3_6 [PROTO} P3_7
 #define UD1 P3_2	 //[PCB] P3_2
 #define RST2 P1_2	 //[PCB] P1_2
 #define OE2 P3_7	 //[PCB] P3_7
@@ -40,13 +40,13 @@
 #define SEL2 P4_4	
 
 // MCP3008
-#define CE	  P0_3	 //[PCB] P1_4
+#define CE	  P1_4	 //[PCB] P1_4  [PROTO] P0_3
 
 //Function Prototypes
 void waitms (void);
 void resetHCTL(int);
-unsigned int decode (void);
-unsigned int readBits(void);
+unsigned int decode (int);
+unsigned int readBits(int);
 void SPIWrite(unsigned char);
 unsigned int GetADC(unsigned char);
 int PIDcalculation(int);
@@ -62,8 +62,9 @@ int fivePointMovingAvg(int);
 #define kd  0.069F //0.4368
 #define dT  0.00083333F
 volatile int position = 1111;
-volatile int setPoint = 808;
-volatile int ySetPoint = 909;
+volatile int linposition = 2222;
+volatile int angSetPoint = 808;
+volatile int linSetPoint = 909;
 volatile int error = 0;
 volatile int prevError = 0;
 volatile int past5[5]; //Array of previous errors
@@ -119,29 +120,53 @@ void main (void)
 	printf( CLEAR_SCREEN );
 	printf( GOTO_YX, 1, 1 );
 	printf("Motor Angle      :::");
-	printf("\nController Angle ::: ");
+	printf("\nLin Motor Angle  :::");
+	printf("\nSetpoint Angle   ::: ");
 	printf("\nLinear Position  ::: ");
 	
 	while(1)
 	{		
-		printf( GOTO_YX, 1, 21 );
-		position = decode()/33.33;     //HCTL1 Reading in degrees
+		printf( GOTO_YX, 1, 22 );
+		position = decode(1);          //HCTL1 NEEDS CONVERSION---(Sensor Resolution*4/360)*(Gear Ratio)
 		printf("%i     ", position);
-		setPoint = GetADC(2)/3.196;	   //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
-		printf( GOTO_YX, 2, 21 );
-		printf("%i    ", setPoint);
-		ySetPoint = GetADC(1)/8.9;	//Linear Pot Reading out of 100
-		printf( GOTO_YX, 3, 21 );
-		printf("%i    ", ySetPoint);
 		
-		error = setPoint - position;
+		printf( GOTO_YX, 2, 22 );
+		linposition = decode(2);       //HCTL2 (Sensor Resolution*4/360)*(360degrees/cm)*(Gear Ratio)   33.33;
+		printf("%i     ", linposition);
+		
+		angSetPoint = GetADC(1)/3.196;	   //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
+		printf( GOTO_YX, 3, 22 );
+		if(angSetPoint > 300)resetHCTL(2);
+		printf("%i    ", angSetPoint);
+		
+		linSetPoint = GetADC(0)/(9.3);	//Linear Pot Reading out of 100
+		printf( GOTO_YX, 4, 22 );
+		if(linSetPoint>80)resetHCTL(1);
+		printf("%i    ", linSetPoint);
+		
+		error = angSetPoint - position;
 		
 		temp_pwm = PIDcalculation(error); //WILL CHANGE WITH dT
 			
 			printf("\nPWM ::: %i    ", temp_pwm);
 			
-		RH0 = temp_pwm;
+		//RH0 = temp_pwm;
+		RH0 = linSetPoint + 28;
 	}	
+}
+
+void resetHCTL (int select)
+{
+	if(select == 1){
+		RST1 = 0; //Clear HCTL
+	    waitms;
+	    RST1 = 1;
+	}
+	else if(select == 2){
+		RST2 = 0;
+		waitms;
+		RST2 = 1;
+	}
 }
 
 int PIDcalculation (int error){
@@ -188,27 +213,6 @@ int fivePointMovingAvg (int prevError){
 	return avgError;
 }
 
-void waitms (void){
-_asm
-mov R2, #1
-L3: mov R1, #1
-L2: mov R0, #184
-L1: djnz R0, L1 ; 2 machine cycles-> 0.5425347us*184=100us
-djnz R1, L2 ; 100us*10=1ms
-djnz R2, L3 ; 1ms*25= 25ms
-ret
-_endasm;
-}
-
-void resetHCTL (int select)
-{
-	if(select = 1){
-		P1_1 = 0; //Clear HCTL
-	    waitms;
-	    P1_1 = 1;
-	}
-}
-
 
 //         LP51B    HCTL
 //---------------------------
@@ -233,7 +237,7 @@ void resetHCTL (int select)
 // D7	-	P2.7   - pin 7
 
 //RETURN 32-BIT MEASUREMENT, read from encoder
-unsigned int decode (void)
+unsigned int decode (int OE)
 {
 	unsigned int result = 0;
 	int mult = 0;
@@ -242,26 +246,29 @@ unsigned int decode (void)
 	unsigned int Result_2nd = 0;
 	unsigned int Result_3rd = 0;
 	unsigned int Result_hi = 0;
-
-		P3_7 = 1; //Disable OE
+	
+	if(OE==1)P3_6 = 1; //Disable OE
+	else if(OE==2)P3_7 = 1; //Disable OE
 	
 			P4_3 = 0; //Sel1 TEST
 			P4_4 = 1; //SEL2 = 1 (MSB)
-		P3_7 = 0; //Enable OE
-		Result_hi = readBits(); // Get MSB
-		
+			
+	if(OE==1)P3_6 = 0; //Enable OE
+	else if(OE==2)P3_7 = 0; //Enable OE	
+	
+		Result_hi = readBits(OE); // Get MSB
 			P4_3 = 1; //SEL1 = 1 (2nd Byte)
 			P4_4 = 1; //SEL2 = 1 (2nd Byte)
-		Result_2nd  = readBits();
-		
+		Result_2nd  = readBits(OE);
 			P4_3 = 0; //SEL1 = 0 (3rd Byte)
 			P4_4 = 0; //SEL2 = 0 (3rd Byte)
-		Result_3rd = readBits();
-	
+		Result_3rd = readBits(OE);
 			P4_3 = 1; //SEL1 = 1 (LSB)
 			P4_4 = 0; //SEL2 = 0 (LSB)
-		Result_lo = readBits(); // Get LSB
-		P3_7 = 1; 				//Disable OE
+		Result_lo = readBits(OE); // Get LSB
+		
+	if(OE==1)P3_6 = 1; //Disable OE
+	else if(OE==2)P3_7 = 1; //Disable OE
 	
 		mult = 1;
 		temp = Result_lo*mult; //Assign LSB
@@ -282,15 +289,33 @@ unsigned int decode (void)
 	return result;
 }
 
-
 //READ BYTE FROM OPTICAL ENCODER
-unsigned int readBits(void)
+unsigned int readBits(int select)
 {
 	unsigned int num = 0;
 	
-	num = P2_7*128 + P2_6*64 + P2_5*32 + P2_4*16 + P2_3*8 + P2_2*4 + P2_1*2 + P2_0*1;
+	if(select == 1){
+		num = P2_7*128 + P2_6*64 + P2_5*32 + P2_4*16 + P2_3*8 + P2_2*4 + P2_1*2 + P2_0*1;
+	}
+	
+	else if(select == 2){
+		num = P0_7*128 + P0_6*64 + P0_5*32 + P0_4*16 + P0_3*8 + P0_2*4 + P0_1*2 + P0_0*1;
+	}
 	
 	return num;
+}
+
+
+void waitms (void){
+_asm
+mov R2, #1
+L3: mov R1, #1
+L2: mov R0, #184
+L1: djnz R0, L1 ; 2 machine cycles-> 0.5425347us*184=100us
+djnz R1, L2 ; 100us*10=1ms
+djnz R2, L3 ; 1ms*25= 25ms
+ret
+_endasm;
 }
 
 //-------------------------------------------------------------Potentiometer + MCP3008------------------------------------------------------
