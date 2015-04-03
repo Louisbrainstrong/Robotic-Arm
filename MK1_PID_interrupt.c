@@ -143,10 +143,8 @@ void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
     linposition = decode(2);       //HCTL2 (Sensor Resolution*4/360)*(360degrees/cm)*(Gear Ratio)   33.33;
 
     angSetPoint = GetADC(1)/3.196;     //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
-    if(angSetPoint > 300)resetHCTL(2);
 
     linSetPoint = GetADC(0)/(9.3);  //Linear Pot Reading out of 100
-    if(linSetPoint>80)resetHCTL(1);
 
     error = angSetPoint - position;
     

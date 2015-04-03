@@ -4,3 +4,10 @@ MK1_PID.lkr
 MK1_PID.lst
 MK1_PID.map
 MK1_PID.obj
+
+MK1_PID_interrupt.asm
+MK1_PID_interrupt.hex
+MK1_PID_interrupt.lkr
+MK1_PID_interrupt.lst
+MK1_PID_interrupt.map
+MK1_PID_interrupt.obj
