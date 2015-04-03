@@ -28,8 +28,8 @@
 #define TIMER0_RELOAD_VALUE (65536L-(CLK/(12L*FREQ)))
 #define HCTL_FREQ 10000L
 #define TIMER1_RELOAD_VALUE (65536L-(CLK/(12L*FREQ)))
-#define MSB_reload_value 0xD4 /* Timer 2 msb reload value exemple */
-#define LSB_reload_value 0xCC /* Timer 2 lsb reload value exemple */
+#define MSB_reload_value 0x11 /* Timer 2 msb reload value exemple */
+#define LSB_reload_value 0xBB /* Timer 2 lsb reload value exemple */
 
 //HCTL
 #define RST1 P1_1	 //[PCB] P1_1
@@ -73,7 +73,7 @@ volatile int past5[5]; //Array of previous errors
 volatile int errSum = 0;
 volatile int dErr = 0;
 volatile int pwm_temp = 0;
-
+volatile int temp_pwm = 0;
 
 unsigned char _c51_external_startup(void)
 {
@@ -138,15 +138,29 @@ unsigned char _c51_external_startup(void)
  */
 void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 {
-   P1_3 = ~P1_3;					/* P1.3 toggle when interrupt. */
-	TF2 = 0;							/* reset interrupt flag */
+    position = decode(1);          //HCTL1 NEEDS CONVERSION---(Sensor Resolution*4/360)*(Gear Ratio)
+    
+    linposition = decode(2);       //HCTL2 (Sensor Resolution*4/360)*(360degrees/cm)*(Gear Ratio)   33.33;
+
+    angSetPoint = GetADC(1)/3.196;     //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
+    if(angSetPoint > 300)resetHCTL(2);
+
+    linSetPoint = GetADC(0)/(9.3);  //Linear Pot Reading out of 100
+    if(linSetPoint>80)resetHCTL(1);
+
+    error = angSetPoint - position;
+    
+    temp_pwm = PIDcalculation(error); //WILL CHANGE WITH dT
+
+    RH0 = temp_pwm;
+        
+    /*P1_3 = !P1_3;					 P1.3 toggle when interrupt. 
+	TF2 = 0;							 reset interrupt flag */
 }
 
 
 void main (void)
-{	
-	int temp_pwm = 88;
-	
+{		
 	resetHCTL(1);
 	resetHCTL(2);
 	
@@ -162,31 +176,21 @@ void main (void)
 	while(1)
 	{		
 		printf( GOTO_YX, 1, 22 );
-		position = decode(1);          //HCTL1 NEEDS CONVERSION---(Sensor Resolution*4/360)*(Gear Ratio)
 		printf("%i     ", position);
 		
 		printf( GOTO_YX, 2, 22 );
-		linposition = decode(2);       //HCTL2 (Sensor Resolution*4/360)*(360degrees/cm)*(Gear Ratio)   33.33;
 		printf("%i     ", linposition);
 		
-		angSetPoint = GetADC(1)/3.196;	   //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
-		printf( GOTO_YX, 3, 22 );
-		if(angSetPoint > 300)resetHCTL(2);
+        printf( GOTO_YX, 3, 22 );
 		printf("%i    ", angSetPoint);
 		
-		linSetPoint = GetADC(0)/(9.3);	//Linear Pot Reading out of 100
-		printf( GOTO_YX, 4, 22 );
-		if(linSetPoint>80)resetHCTL(1);
+        printf( GOTO_YX, 4, 22 );
 		printf("%i    ", linSetPoint);
 		
-		error = angSetPoint - position;
-		
-		temp_pwm = PIDcalculation(error); //WILL CHANGE WITH dT
+            printf("\nPWM ::: %i    ", temp_pwm);
+            
 			
-			printf("\nPWM ::: %i    ", temp_pwm);
-			
-		//RH0 = temp_pwm;
-		RH0 = linSetPoint + 28;
+    
 	}	
 }
 
