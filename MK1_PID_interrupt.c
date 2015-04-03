@@ -73,7 +73,9 @@ volatile int past5[5]; //Array of previous errors
 volatile int errSum = 0;
 volatile int dErr = 0;
 volatile int pwm_temp = 0;
-volatile int temp_pwm = 0;
+volatile int linear_pwm = 0;
+volatile int count = 0;
+volatile bit overflow = 0;
 
 unsigned char _c51_external_startup(void)
 {
@@ -138,35 +140,42 @@ unsigned char _c51_external_startup(void)
  */
 void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 {
-
-    position = decode(1);               //HCTL1 NEEDS CONVERSION---(Sensor Resolution*4/360)*(Gear Ratio)
-    
-    linposition = decode(2);            //HCTL2 (Sensor Resolution*4/360)*(360degrees/cm)*(Gear Ratio)   33.33;
-
-    angSetPoint = GetADC(1)/3.196;      //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
-
-    linSetPoint = GetADC(0)/(9.3);      //Linear Pot Reading out of 100
-
-    error = angSetPoint - position;
-    
-    temp_pwm = PIDcalculation(error); //WILL CHANGE WITH dT
-
-    RH0 = temp_pwm;
-
-    printf( GOTO_YX, 2, 22 );
-    printf("%i     ", linposition);
-    
-    printf( GOTO_YX, 3, 22 );
-    printf("%i    ", angSetPoint);
-    
-    printf( GOTO_YX, 4, 22 );
-    printf("%i    ", linSetPoint);
-    
-    printf("\nPWM ::: %i    ", temp_pwm);
-    
-        
-    /*P1_3 = !P1_3;                  P1.3 toggle when interrupt. 
-    TF2 = 0;                             reset interrupt flag */
+		/* STEPHANE's ANGULAR MOTOR */
+		printf( GOTO_YX, 1, 22 );
+		position = decode(1)/33.3333;          //HCTL1 (Sensor Resolution*4/360)*(Gear Ratio) = 6*4*500/360 = 33.333333
+		printf("%i     ", position);
+		
+		angSetPoint = GetADC(0)/3.196;	   //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
+		printf( GOTO_YX, 2, 22 );
+		printf("%i    ", angSetPoint);
+		
+		/* LINEAR ACTUATION MOTOR */
+		printf( GOTO_YX, 3, 22 );    
+		linposition = decode(2)/17.777777;   //HCTL2 (Sensor Resolution*4/360)*(Gear Ratio) = 17.777777777 = 1 count per turn;
+		printf("%i     ", linposition);
+		
+		if(overflow == 1){
+			if(linposition < 1000)count++;
+			else if(UD2 == 0)count--;
+			overflow = 0;
+		}
+		
+		if(linposition>=3660 && linposition<=3690)overflow = 1;
+		
+		linSetPoint = GetADC(1);	//Linear Pot Reading out of 1000
+		printf( GOTO_YX, 4, 22 );
+		printf("%i    ", linSetPoint);
+		
+		error = linSetPoint - linposition;
+		
+		linear_pwm = PIDcalculation(error); //WILL CHANGE WITH dT
+		
+		if(linSetPoint < 10)RH0=0;
+		else if(linSetPoint > 1000)RH0=255;
+		else RH0 = linear_pwm;
+		
+		printf( GOTO_YX, 5, 22 );
+		printf("%i    ", count);
 }
 
 
@@ -179,10 +188,11 @@ void main (void)
     printf( FORE_BACK, COLOR_BLACK, COLOR_WHITE );
     printf( CLEAR_SCREEN );
     printf( GOTO_YX, 1, 1 );
-    printf("Motor Angle      :::");
-    printf("\nLin Motor Angle  :::");
+    printf("Motor Angle        :::");
     printf("\nSetpoint Angle   ::: ");
-    printf("\nLinear Position  ::: ");
+    printf("\nLin Motor y-Pos  ::: ");
+    printf("\nLinear Setpoint  ::: ");
+    printf("\nOverflow Count   ::: ");
     
     while(1);
 }
