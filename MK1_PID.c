@@ -1,4 +1,4 @@
-//Generates 2 PWM signals at 1200 and 3600 Hz. Doesn't currently do PID for unknown reasons.
+//Generates 2 PWM signals at 1200
 
 #include <stdio.h>
 #include <stdlib.h>
