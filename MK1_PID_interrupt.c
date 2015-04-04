@@ -214,16 +214,7 @@ void main (void)
         RH0 = 0;
     }
     
-<<<<<<< HEAD
-    printf( GOTO_YX, 1, 1);
-    printf("Motor Angle      :::");
-    printf("\nSetpoint Angle   ::: ");
-    printf("\nLin Motor y-Pos  ::: ");
-    printf("\nLinear Setpoint  ::: ");
-    printf("\nLinear PWM       ::: ");
-    printf("\nHCTL Lin Pos     ::: ");
-    printf("\nOverflow Count   ::: ");
-=======
+
     /*PWM to 0 point First*/
 	while(P1_3 == 0){
 		RH0 = 0;
@@ -242,7 +233,6 @@ void main (void)
     //printf("\n      +++ TESTING +++");        //8
     //printf("\nHCTL Lin Pos     ::: ");        //9
     //printf("\nOverflow Count   ::: ");        //10
->>>>>>> 58d246d2334b532f6be5d49dadeae20a4fa0af68
 	
    	TR2=1;                     /* timer2 run */
    	
