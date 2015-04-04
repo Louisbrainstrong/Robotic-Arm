@@ -270,7 +270,7 @@ int PIDcalculation (int error, int mselect){
     output = kp * error + ki * errSum + kd * dErr;
     
     /* Limit error */
-    if(output > 128) output = 127;
+    if(output > 127) output = 127;
     else if (output < -128) output = -128;
     output = 128 + output;
     
