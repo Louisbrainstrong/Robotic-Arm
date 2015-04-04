@@ -171,7 +171,7 @@ void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 
 		
 		/* LINEAR ACTUATION MOTOR */
-		linSetPoint = GetADC(1);	//Linear Pot Reading out of 1000
+		linSetPoint = 500;//GetADC(1);	//Linear Pot Reading out of 1000
 		printf( GOTO_YX, 5, 22 );
 		printf("%i    ", linSetPoint);
 		
@@ -205,7 +205,6 @@ void main (void)
     
     printf( FORE_BACK, COLOR_BLACK, COLOR_WHITE );
     printf( CLEAR_SCREEN );
-   
     
     /*PWM to 0 point First*/
 	while(P1_3 == 0){
