@@ -16,6 +16,7 @@
 #define FORE_BACK "\x1B[0;3%d;4%dm"
 #define COLOR_BLACK     0
 #define COLOR_WHITE     7
+#define TOTAL_RATIO		55
 
 // The AT89lp51 soft processor clock is 22.1184 MHz 
 #define CLK 22118400L
@@ -172,7 +173,7 @@ void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 		printf("%i    ", linSetPoint);
 		
 		/* Normalize linposition */
-		linposition = (linposition + (count*3686))/60.604;
+		linposition = (linposition + (count*3686))/TOTAL_RATIO;
 		printf( GOTO_YX, 3, 22 );
 		printf("%i     ", linposition);
 		
@@ -189,7 +190,7 @@ void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 
 
 void main (void)
-{       
+{    
     /* Reset everything */
     resetHCTL(1);
     resetHCTL(2);
@@ -197,18 +198,19 @@ void main (void)
     printf( FORE_BACK, COLOR_BLACK, COLOR_WHITE );
     printf( CLEAR_SCREEN );
    
+    P1_3 = 0;
+
+    /* PWM to start initially */
+    while(P1_3 == 1){
+        RH0 = 0;
+    }
     
-    /*PWM to 0 point First*/
-	while(P3_5 == 0){
-		RH0 = 0;
-	}
-	
-	printf( GOTO_YX, 1, 1);
-	printf("Motor Angle      :::");
+    printf( GOTO_YX, 1, 1);
+    printf("Motor Angle      :::");
     printf("\nSetpoint Angle   ::: ");
     printf("\nLin Motor y-Pos  ::: ");
     printf("\nLinear Setpoint  ::: ");
-    printf("\nLinear PWM	   ::: ");
+    printf("\nLinear PWM       ::: ");
     printf("\nHCTL Lin Pos     ::: ");
     printf("\nOverflow Count   ::: ");
 	
