@@ -65,7 +65,7 @@ void linearOverflowCount (int);
 #define kd  0.069F //0.4368
 */
 #define kp  1.000F //6.7334 
-#define dT  0.001F
+#define dT  0.0281F
 volatile int angPosition = 1111;
 volatile int linposition = 2222;
 volatile int angSetPoint = 808;
@@ -107,18 +107,18 @@ unsigned char _c51_external_startup(void)
     
     //Initialize Timer 1 for ISR
     TMOD=0B_0001_0001; // 0001 is 16-bit mode (Enhanced Timer 1, p77 in docs)
-    TCONB=0B_01000000; //TCONB(7) = P3_5 PWM and TCONB(6) = P3_4 for PWM on Timer0
-    //TCONB=0B_11000000; //P3_5 PWM ENABLED 
+    //TCONB=0B_01000000; //TCONB(7) = P3_5 PWM and TCONB(6) = P3_4 for PWM on Timer0
+    TCONB=0B_11000000; //P3_5 PWM ENABLED 
     
 
     TR0=0;
     TR0=1;
-    //TR1=1;
+    TR1=1;
     
-    //RL1=250;
+    RL1=250;
     RL0=250; 
     
-    //RH1=128; //Pin3.5
+    RH1=128; //Pin3.5
     RH0=128; //Pin3.4
     
 
@@ -138,6 +138,7 @@ unsigned char _c51_external_startup(void)
     EA=1;                      /* interupt enable */
     ET2=1;                     /* enable timer2 interrupt */
 
+	P4_1 = 1;
     return 0;
 }
 
@@ -148,43 +149,51 @@ unsigned char _c51_external_startup(void)
  */
 void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 {
+		if(P4_0 == 1)P4_0 = 0;
+		else P4_0 = 1;
+		
 		/* STEPHANE's ANGULAR MOTOR */
+		angSetPoint = GetADC(0)/3.196;	   //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
 		printf( GOTO_YX, 1, 22 );
+		printf("%i    ", angSetPoint);
+		
+		printf( GOTO_YX, 2, 22 );
 		angPosition = decode(1)/33.3333;          //HCTL1 (Sensor Resolution*4/360)*(Gear Ratio) = 6*4*500/360 = 33.333333
 		printf("%i     ", angPosition);
 		
-		angSetPoint = GetADC(0)/3.196;	   //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
-		printf( GOTO_YX, 2, 22 );
-		printf("%i    ", angSetPoint);
+		angerror = angSetPoint - angPosition;
+		angular_pwm = PIDcalculation(angerror, 1);
 		
-		//angerror = angSetPoint - angPosition;
-		//angular_pwm = PIDcalculation(angerror, 1);
-		
+		if(angSetPoint > 300)RH1 = 255;
+		else if(angSetPoint <20)RH1 = 0;
+		printf( GOTO_YX, 3, 22);
+		printf("%i    ", RH1);
+
 		
 		/* LINEAR ACTUATION MOTOR */
-		linposition = decode(2)/17.777777;   //HCTL2 (Sensor Resolution*4/360)*(Gear Ratio) = 17.777777777 = 1 count per turn;
-		printf( GOTO_YX, 6, 22);
-		printf("%i     ", linposition);
-		linearOverflowCount(linposition);
-		
 		linSetPoint = GetADC(1);	//Linear Pot Reading out of 1000
-		printf( GOTO_YX, 4, 22 );
+		printf( GOTO_YX, 5, 22 );
 		printf("%i    ", linSetPoint);
 		
 		/* Normalize linposition */
+		linposition = decode(2)/17.777777;   //HCTL2 (Sensor Resolution*4/360)*(Gear Ratio) = 17.777777777 = 1 count per turn;
+		//printf( GOTO_YX, 9, 22);
+		//printf("%i     ", linposition);
+		linearOverflowCount(linposition);
 		linposition = (linposition + (count*3686))/60.604;
-		printf( GOTO_YX, 3, 22 );
+		printf( GOTO_YX, 6, 22 );
 		printf("%i     ", linposition);
 		
 		linerror = linSetPoint - linposition;
 		linear_pwm = PIDcalculation(linerror, 2);
 		
 		RH0 = linear_pwm;
-		printf( GOTO_YX, 5, 22);
+		printf( GOTO_YX, 7, 22);
 		printf("%i    ", RH0);
 		
-		printf( GOTO_YX, 7, 22 );
-		printf("%i    ", count);
+		
+		//printf( GOTO_YX, 10, 22 );
+		//printf("%i    ", count);
 }
 
 
@@ -199,18 +208,23 @@ void main (void)
    
     
     /*PWM to 0 point First*/
-	while(P3_5 == 0){
+	while(P1_3 == 0){
 		RH0 = 0;
 	}
 	
 	printf( GOTO_YX, 1, 1);
-	printf("Motor Angle      :::");
-    printf("\nSetpoint Angle   ::: ");
-    printf("\nLin Motor y-Pos  ::: ");
-    printf("\nLinear Setpoint  ::: ");
-    printf("\nLinear PWM	   ::: ");
-    printf("\nHCTL Lin Pos     ::: ");
-    printf("\nOverflow Count   ::: ");
+	printf("Setpoint Angle   ::: ");			//1
+	printf("\nMotor Angle      :::");			//2
+    printf("\nAngular PWM      ::: ");			//3
+    
+    printf("\n\nLinear Setpoint  ::: ");		//5
+    printf("\nLin Motor y-Pos  ::: ");			//6
+    printf("\nLinear PWM	     ::: ");		//7
+    
+    
+    //printf("\n      +++ TESTING +++");        //8
+    //printf("\nHCTL Lin Pos     ::: ");        //9
+    //printf("\nOverflow Count   ::: ");        //10
 	
    	TR2=1;                     /* timer2 run */
    	
@@ -241,8 +255,8 @@ int PIDcalculation (int error, int mselect){
     }
     
     if(mselect == 2){
-    	ki = 0.2;
-    	kd = 0.1;
+    	ki = 0.1;
+    	kd = 0.6;
     }
     
     /*Control for Angular Underflow*/
@@ -250,7 +264,7 @@ int PIDcalculation (int error, int mselect){
     
     /*Compute working error variables*/
     errSum += error * dT;
-    dErr = (error - fivePointMovingAvg(prevError)); //Dividing by dT makes this huge
+    dErr = (error - fivePointMovingAvg(prevError))/dT; //Dividing by dT makes this huge
     
     /*Compute PID Output*/
     output = kp * error + ki * errSum + kd * dErr;
