@@ -180,7 +180,7 @@ void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 		//printf( GOTO_YX, 9, 22);
 		//printf("%i     ", linposition);
 		linearOverflowCount(linposition);
-		linposition = (linposition + (count*3686))/60.604;
+		linposition = (linposition + (count*3686))/56;
 		printf( GOTO_YX, 6, 22 );
 		printf("%i     ", linposition);
 		
@@ -242,8 +242,8 @@ void linearOverflowCount (int linposition){
 			underflow = 0;
 		}
 		
-		if(linposition > 3590)overflow = 1;
-		else if(linposition < 50)underflow = 1;
+		if(linposition > 3550)overflow = 1;
+		else if(linposition < 130)underflow = 1;
 }
 
 int PIDcalculation (int error, int mselect){
@@ -255,8 +255,8 @@ int PIDcalculation (int error, int mselect){
     }
     
     if(mselect == 2){
-    	ki = 0.1;
-    	kd = 0.6;
+    	ki = 0.5;
+    	kd = 0.0009; //0.1
     }
     
     /*Control for Angular Underflow*/
