@@ -172,7 +172,7 @@ void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 		printf("%i    ", linSetPoint);
 		
 		/* Normalize linposition */
-		linposition = (linposition + (count*3686))/51.604;
+		linposition = (linposition + (count*3686))/60.604;
 		printf( GOTO_YX, 3, 22 );
 		printf("%i     ", linposition);
 		
@@ -237,7 +237,7 @@ int PIDcalculation (int error, int mselect){
     
     if(mselect == 1){
     	ki = 0.2;
-    	kd = 0.1;
+    	kd = 0.3;
     }
     
     if(mselect == 2){
@@ -249,11 +249,11 @@ int PIDcalculation (int error, int mselect){
     //if(error < -1700)error=50;
     
     /*Compute working error variables*/
-    //errSum += error * dT;
-    //dErr = (error - fivePointMovingAvg(prevError)); //Dividing by dT makes this huge
+    errSum += error * dT;
+    dErr = (error - fivePointMovingAvg(prevError)); //Dividing by dT makes this huge
     
     /*Compute PID Output*/
-    output = kp * error; //+ ki * errSum + kd * dErr;
+    output = kp * error + ki * errSum + kd * dErr;
     
     /* Limit error */
     if(output > 128) output = 127;
