@@ -16,7 +16,6 @@
 #define FORE_BACK "\x1B[0;3%d;4%dm"
 #define COLOR_BLACK     0
 #define COLOR_WHITE     7
-#define TOTAL_RATIO		55
 
 // The AT89lp51 soft processor clock is 22.1184 MHz 
 #define CLK 22118400L
@@ -139,7 +138,8 @@ unsigned char _c51_external_startup(void)
     EA=1;                      /* interupt enable */
     ET2=1;                     /* enable timer2 interrupt */
 
-	P4_1 = 1;
+    P4_1 = 1; // POSSIBLY RMEOVE
+
     return 0;
 }
 
@@ -150,56 +150,69 @@ unsigned char _c51_external_startup(void)
  */
 void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 {
-		if(P4_0 == 1)P4_0 = 0;
-		else P4_0 = 1;
-		
-		/* STEPHANE's ANGULAR MOTOR */
-		angSetPoint = GetADC(0)/3.196;	   //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
-		printf( GOTO_YX, 1, 22 );
-		printf("%i    ", angSetPoint);
-		
-		printf( GOTO_YX, 2, 22 );
-		angPosition = decode(1)/33.3333;          //HCTL1 (Sensor Resolution*4/360)*(Gear Ratio) = 6*4*500/360 = 33.333333
-		printf("%i     ", angPosition);
-		
-		angerror = angSetPoint - angPosition;
-		angular_pwm = PIDcalculation(angerror, 1);
-		
-		if(angSetPoint > 300)RH1 = 255;
-		else if(angSetPoint <20)RH1 = 0;
-		printf( GOTO_YX, 3, 22);
-		printf("%i    ", RH1);
+         
+        /* STEPHANE's ANGULAR MOTOR */
+        angSetPoint = GetADC(0)/3.196;     //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
+        printf( GOTO_YX, 1, 22 );
+        printf("%i    ", angSetPoint);
+        
+        printf( GOTO_YX, 2, 22 );
+        angPosition = decode(1)/24;          //HCTL1 (Sensor Resolution*4/360)*(Gear Ratio) = 6*4*500/360 = 33.333333
+        printf("%i     ", angPosition);
+        
+        angerror = angSetPoint - angPosition;
+        angular_pwm = PIDcalculation(angerror, 1);
+        
 
-		
-		/* LINEAR ACTUATION MOTOR */
-		linSetPoint = 500;//GetADC(1);	//Linear Pot Reading out of 1000
-		printf( GOTO_YX, 5, 22 );
-		printf("%i    ", linSetPoint);
-		
-		/* Normalize linposition */
-		linposition = decode(2)/17.777777;   //HCTL2 (Sensor Resolution*4/360)*(Gear Ratio) = 17.777777777 = 1 count per turn;
-		//printf( GOTO_YX, 9, 22);
-		//printf("%i     ", linposition);
-		linearOverflowCount(linposition);
-		linposition = (linposition + (count*3686))/56;
-		printf( GOTO_YX, 6, 22 );
-		printf("%i     ", linposition);
-		
-		linerror = linSetPoint - linposition;
-		linear_pwm = PIDcalculation(linerror, 2);
-		
-		RH0 = linear_pwm;
-		printf( GOTO_YX, 7, 22);
-		printf("%i    ", RH0);
-		
-		
-		//printf( GOTO_YX, 10, 22 );
-		//printf("%i    ", count);
+        
+
+        if(angSetPoint > 300){
+            RH1 = 255;
+        }
+        else if(angSetPoint < 20){
+            RH1 = 0;
+        }
+        else {
+            RH1 = 35;
+        }
+
+
+        RH1 = angular_pwm;
+        printf( GOTO_YX, 3, 22);
+        printf("%i    ", RH1);
+
+        
+        /* LINEAR ACTUATION MOTOR */
+        linSetPoint = GetADC(1);  //Linear Pot Reading out of 1000
+        printf( GOTO_YX, 5, 22 );
+        printf("%i    ", linSetPoint);
+        
+        /* Normalize linposition */
+        linposition = decode(2)/17.777777;   //HCTL2 (Sensor Resolution*4/360)*(Gear Ratio) = 17.777777777 = 1 count per turn;
+        //printf( GOTO_YX, 9, 22);
+        //printf("%i     ", linposition);
+        linearOverflowCount(linposition);
+        linposition = (linposition + (count*3686))/56;
+        printf( GOTO_YX, 6, 22 );
+        printf("%i     ", linposition);
+        
+        linerror = linSetPoint - linposition;
+        linear_pwm = PIDcalculation(linerror, 2);
+        
+        RH0 = linear_pwm;
+        RH1 = angular_pwm;
+
+        printf( GOTO_YX, 7, 22);
+        printf("%i    ", RH0);
+        
+        
+        //printf( GOTO_YX, 10, 22 );
+        //printf("%i    ", count);
 }
 
 
 void main (void)
-{    
+{       
     /* Reset everything */
     resetHCTL(1);
     resetHCTL(2);
@@ -207,57 +220,57 @@ void main (void)
     printf( FORE_BACK, COLOR_BLACK, COLOR_WHITE );
     printf( CLEAR_SCREEN );
     
-
+    P1_3 = 0;
     /*PWM to 0 point First*/
-	while(P1_3 == 0){
-		RH0 = 0;
-	}
-	
-	printf( GOTO_YX, 1, 1);
-	printf("Setpoint Angle   ::: ");			//1
-	printf("\nMotor Angle      :::");			//2
-    printf("\nAngular PWM      ::: ");			//3
+/*    while(P1_3 == 0){
+        RH0 = 0;
+    }*/
     
-    printf("\n\nLinear Setpoint  ::: ");		//5
-    printf("\nLin Motor y-Pos  ::: ");			//6
-    printf("\nLinear PWM	     ::: ");		//7
+    printf( GOTO_YX, 1, 1);
+    printf("Setpoint Angle   ::: ");            //1
+    printf("\nMotor Angle      :::");           //2
+    printf("\nAngular PWM      ::: ");          //3
+    
+    printf("\n\nLinear Setpoint  ::: ");        //5
+    printf("\nLin Motor y-Pos  ::: ");          //6
+    printf("\nLinear PWM         ::: ");        //7
     
     
     //printf("\n      +++ TESTING +++");        //8
     //printf("\nHCTL Lin Pos     ::: ");        //9
     //printf("\nOverflow Count   ::: ");        //10
-	
-   	TR2=1;                     /* timer2 run */
-   	
+    
+    TR2=1;                     /* timer2 run */
+    
     while(1);
 }
 
 void linearOverflowCount (int linposition){
-		if(overflow == 1){
-			if(linposition < 1000)count++;
-			overflow = 0;
-		}
-		
-		if(underflow == 1){
-			if(linposition > 3000)count--;
-			underflow = 0;
-		}
-		
-		if(linposition > 3550)overflow = 1;
-		else if(linposition < 130)underflow = 1;
+        if(overflow == 1){
+            if(linposition < 1000)count++;
+            overflow = 0;
+        }
+        
+        if(underflow == 1){
+            if(linposition > 3000)count--;
+            underflow = 0;
+        }
+        
+        if(linposition > 3550)overflow = 1;
+        else if(linposition < 130)underflow = 1;
 }
 
 int PIDcalculation (int error, int mselect){
     int output;
     
     if(mselect == 1){
-    	ki = 0.2;
-    	kd = 0.3;
+        ki = 0.2;
+        kd = 0.3;
     }
     
     if(mselect == 2){
-    	ki = 0.5;
-    	kd = 0.0009; //0.1
+        ki = 0.5;
+        kd = 0.0009; //0.1
     }
     
     /*Control for Angular Underflow*/
@@ -270,11 +283,18 @@ int PIDcalculation (int error, int mselect){
     /*Compute PID Output*/
     output = kp * error + ki * errSum + kd * dErr;
     
-    /* Limit error */
-    if(output > 127) output = 127;
-    else if (output < -128) output = -128;
-    output = 128 + output;
-    
+    /* Limit error for linear */
+    if(mselect != 1){
+        if(output > 127) output = 127;
+        else if (output < -128) output = -128;
+        output = 128 + output;
+    }
+    /* Limit error for angular*/
+    else {
+    	 if(output > 127) output = 127;
+
+    	 output = 128 + output;
+    }
     //if(count == 1 || count >= 14)output = 128; //TODO: STOP MOTOR AT 'Boundaries'
     
     prevError = error;
