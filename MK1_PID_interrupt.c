@@ -28,8 +28,8 @@
 #define TIMER0_RELOAD_VALUE (65536L-(CLK/(12L*FREQ)))
 #define HCTL_FREQ 10000L
 #define TIMER1_RELOAD_VALUE (65536L-(CLK/(12L*FREQ)))
-#define MSB_reload_value 0x11 /* Timer 2 msb reload value exemple */
-#define LSB_reload_value 0xBB /* Timer 2 lsb reload value exemple */
+#define MSB_reload_value 0x13 /* Timer 2 msb reload value exemple */ 
+#define LSB_reload_value 0x88 /* Timer 2 lsb reload value exemple */
 
 //HCTL
 #define RST1 P1_1    //[PCB] P1_1
@@ -67,10 +67,11 @@ void linearOverflowCount (int);
 #define kp  1.000F //6.7334 
 #define dT  0.0281F
 volatile int angPosition = 1111;
+volatile int prevangPosition = 0;
+volatile int manualMotorPos = 100;
 volatile int linposition = 2222;
 volatile int angSetPoint = 808;
 volatile int linSetPoint = 909;
-
 volatile int angerror = 0;
 volatile int linerror = 0;
 
@@ -138,7 +139,6 @@ unsigned char _c51_external_startup(void)
     EA=1;                      /* interupt enable */
     ET2=1;                     /* enable timer2 interrupt */
 
-	P4_1 = 1;
     return 0;
 }
 
@@ -149,29 +149,38 @@ unsigned char _c51_external_startup(void)
  */
 void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 {
-		if(P4_0 == 1)P4_0 = 0;
-		else P4_0 = 1;
-		
 		/* STEPHANE's ANGULAR MOTOR */
 		angSetPoint = GetADC(0)/3.196;	   //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
 		printf( GOTO_YX, 1, 22 );
 		printf("%i    ", angSetPoint);
 		
 		printf( GOTO_YX, 2, 22 );
-		angPosition = decode(1)/33.3333;          //HCTL1 (Sensor Resolution*4/360)*(Gear Ratio) = 6*4*500/360 = 33.333333
+		angPosition = decode(1);          //HCTL1 (Sensor Resolution*4/360)*(Gear Ratio) = 6*4*500/360 = 33.333333
 		printf("%i     ", angPosition);
 		
+		/* MANUAL MOTOR POSITION TO COUNTERACT EM INTERFERENCE */
+		/*if(abs(angPosition - prevangPosition) > 4){
+			if(prevangPosition > 0)angPosition = prevangPosition++;
+			else if(prevangPosition < 0)angPosition = prevangPosition--;
+		}
+		if(angPosition > prevangPosition)manualMotorPos++;
+		else if(angPosition < prevangPosition)manualMotorPos--;		
+		
+		else if(angPosition == 0 && prevangPosition == 0)
+		//printf("        cnt = %i     ", manualMotorPos);
+		prevangPosition = angPosition;
+		*/
+		
+		/* ANGULAR PID & PWM */
 		angerror = angSetPoint - angPosition;
 		angular_pwm = PIDcalculation(angerror, 1);
 		
-		if(angSetPoint > 300)RH1 = 255;
-		else if(angSetPoint <20)RH1 = 0;
+		RH1 = angSetPoint/1.252;
 		printf( GOTO_YX, 3, 22);
 		printf("%i    ", RH1);
 
-		
 		/* LINEAR ACTUATION MOTOR */
-		linSetPoint = 500;//GetADC(1);	//Linear Pot Reading out of 1000
+		linSetPoint = GetADC(1);	//Linear Pot Reading out of 1000
 		printf( GOTO_YX, 5, 22 );
 		printf("%i    ", linSetPoint);
 		
@@ -184,6 +193,7 @@ void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 		printf( GOTO_YX, 6, 22 );
 		printf("%i     ", linposition);
 		
+		/* Linear PID & PWM */
 		linerror = linSetPoint - linposition;
 		linear_pwm = PIDcalculation(linerror, 2);
 		
@@ -225,9 +235,22 @@ void main (void)
     //printf("\nHCTL Lin Pos     ::: ");        //9
     //printf("\nOverflow Count   ::: ");        //10
 	
-   	TR2=1;                     /* timer2 run */
+	/* timer2 run */
+   	TR2=1;
    	
-    while(1);
+    while(1){
+    	printf( FORE_BACK, COLOR_BLACK, COLOR_WHITE );
+    	printf( CLEAR_SCREEN );
+    	
+    	printf( GOTO_YX, 1, 1);
+		printf("Setpoint Angle   ::: ");			//1
+		printf("\nMotor Angle      :::");			//2
+    	printf("\nAngular PWM      ::: ");			//3
+    
+    	printf("\n\nLinear Setpoint  ::: ");		//5
+    	printf("\nLin Motor y-Pos  ::: ");			//6
+    	printf("\nLinear PWM	     ::: ");		//7
+    }
 }
 
 void linearOverflowCount (int linposition){
@@ -249,8 +272,8 @@ int PIDcalculation (int error, int mselect){
     int output;
     
     if(mselect == 1){
-    	ki = 0.2;
-    	kd = 0.3;
+    	ki = 0;
+    	kd = 0;
     }
     
     if(mselect == 2){
@@ -270,10 +293,8 @@ int PIDcalculation (int error, int mselect){
     
     /* Limit error */
     if(output > 127) output = 127;
-    else if (output < -128) output = -128;
+    else if (output < -128)output = -128;
     output = 128 + output;
-    
-    //if(count == 1 || count >= 14)output = 128; //TODO: STOP MOTOR AT 'Boundaries'
     
     prevError = error;
     
