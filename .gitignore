@@ -11,3 +11,17 @@ MK1_PID_interrupt.lkr
 MK1_PID_interrupt.lst
 MK1_PID_interrupt.map
 MK1_PID_interrupt.obj
+
+MK2_StableStephane.asm
+MK2_StableStephane.hex
+MK2_StableStephane.lkr
+MK2_StableStephane.lst
+MK2_StableStephane.map
+MK2_StableStephane.obj
+
+MK3_OneStepAtATime.asm
+MK3_OneStepAtATime.hex
+MK3_OneStepAtATime.lkr
+MK3_OneStepAtATime.lst
+MK3_OneStepAtATime.map
+MK3_OneStepAtATime.obj

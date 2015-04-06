@@ -1,0 +1,2868 @@
+0000              1   ;--------------------------------------------------------
+0000              2   ; File Created by C51
+0000              3   ; Version 1.0.0 #1034 (Dec 12 2012) (MSVC)
+0000              4   ; This file was generated Mon Apr 06 14:11:10 2015
+0000              5   ;--------------------------------------------------------
+                  5   $name MK2_StableStephane
+                  6   $optc51 --model-small
+0000              8            R_DSEG    segment data
+0000              9            R_CSEG    segment code
+0000             10            R_BSEG    segment bit
+0000             11            R_XSEG    segment xdata
+0000             12            R_PSEG    segment xdata
+0000             13            R_ISEG    segment idata
+0000             14            R_OSEG    segment data overlay
+0000             15            BIT_BANK  segment data overlay
+0000             16            R_HOME    segment code
+0000             17            R_GSINIT  segment code
+0000             18            R_IXSEG   segment xdata
+0000             19            R_CONST   segment code
+0000             20            R_XINIT   segment code
+0000             21            R_DINIT   segment code
+0000             22   
+0000             23   ;--------------------------------------------------------
+0000             24   ; Public variables in this module
+0000             25   ;--------------------------------------------------------
+0000             26            public _main
+0000             27            public _it_timer2
+0000             28            public __c51_external_startup
+0000             29            public _underflow
+0000             30            public _overflow
+0000             31            public _PIDcalculation_PARM_2
+0000             32            public _kd
+0000             33            public _ki
+0000             34            public _count
+0000             35            public _linear_pwm
+0000             36            public _angular_pwm
+0000             37            public _pwm_temp
+0000             38            public _dErr
+0000             39            public _errSum
+0000             40            public _past5
+0000             41            public _prevError
+0000             42            public _error
+0000             43            public _linerror
+0000             44            public _angerror
+0000             45            public _linSetPoint
+0000             46            public _angSetPoint
+0000             47            public _linposition
+0000             48            public _manualMotorPos
+0000             49            public _prevangPosition
+0000             50            public _angPosition
+0000             51            public _linearOverflowCount
+0000             52            public _PIDcalculation
+0000             53            public _resetHCTL
+0000             54            public _fivePointMovingAvg
+0000             55            public _decode
+0000             56            public _readBits
+0000             57            public _waitms
+0000             58            public _SPIWrite
+0000             59            public _GetADC
+0000             60   ;--------------------------------------------------------
+0000             61   ; Special Function Registers
+0000             62   ;--------------------------------------------------------
+0000             63   _ACC            DATA 0xe0
+0000             64   _B              DATA 0xf0
+0000             65   _PSW            DATA 0xd0
+0000             66   _SP             DATA 0x81
+0000             67   _SPX            DATA 0xef
+0000             68   _DPL            DATA 0x82
+0000             69   _DPH            DATA 0x83
+0000             70   _DPLB           DATA 0xd4
+0000             71   _DPHB           DATA 0xd5
+0000             72   _PAGE           DATA 0xf6
+0000             73   _AX             DATA 0xe1
+0000             74   _BX             DATA 0xf7
+0000             75   _DSPR           DATA 0xe2
+0000             76   _FIRD           DATA 0xe3
+0000             77   _MACL           DATA 0xe4
+0000             78   _MACH           DATA 0xe5
+0000             79   _PCON           DATA 0x87
+0000             80   _AUXR           DATA 0x8e
+0000             81   _AUXR1          DATA 0xa2
+0000             82   _DPCF           DATA 0xa1
+0000             83   _CKRL           DATA 0x97
+0000             84   _CKCKON0        DATA 0x8f
+0000             85   _CKCKON1        DATA 0xaf
+0000             86   _CKSEL          DATA 0x85
+0000             87   _CLKREG         DATA 0xae
+0000             88   _OSCCON         DATA 0x85
+0000             89   _IE             DATA 0xa8
+0000             90   _IEN0           DATA 0xa8
+0000             91   _IEN1           DATA 0xb1
+0000             92   _IPH0           DATA 0xb7
+0000             93   _IP             DATA 0xb8
+0000             94   _IPL0           DATA 0xb8
+0000             95   _IPH1           DATA 0xb3
+0000             96   _IPL1           DATA 0xb2
+0000             97   _P0             DATA 0x80
+0000             98   _P1             DATA 0x90
+0000             99   _P2             DATA 0xa0
+0000            100   _P3             DATA 0xb0
+0000            101   _P4             DATA 0xc0
+0000            102   _P0M0           DATA 0xe6
+0000            103   _P0M1           DATA 0xe7
+0000            104   _P1M0           DATA 0xd6
+0000            105   _P1M1           DATA 0xd7
+0000            106   _P2M0           DATA 0xce
+0000            107   _P2M1           DATA 0xcf
+0000            108   _P3M0           DATA 0xc6
+0000            109   _P3M1           DATA 0xc7
+0000            110   _P4M0           DATA 0xbe
+0000            111   _P4M1           DATA 0xbf
+0000            112   _SCON           DATA 0x98
+0000            113   _SBUF           DATA 0x99
+0000            114   _SADEN          DATA 0xb9
+0000            115   _SADDR          DATA 0xa9
+0000            116   _BDRCON         DATA 0x9b
+0000            117   _BRL            DATA 0x9a
+0000            118   _TCON           DATA 0x88
+0000            119   _TMOD           DATA 0x89
+0000            120   _TCONB          DATA 0x91
+0000            121   _TL0            DATA 0x8a
+0000            122   _TH0            DATA 0x8c
+0000            123   _TL1            DATA 0x8b
+0000            124   _TH1            DATA 0x8d
+0000            125   _RL0            DATA 0xf2
+0000            126   _RH0            DATA 0xf4
+0000            127   _RL1            DATA 0xf3
+0000            128   _RH1            DATA 0xf5
+0000            129   _WDTRST         DATA 0xa6
+0000            130   _WDTPRG         DATA 0xa7
+0000            131   _T2CON          DATA 0xc8
+0000            132   _T2MOD          DATA 0xc9
+0000            133   _RCAP2H         DATA 0xcb
+0000            134   _RCAP2L         DATA 0xca
+0000            135   _TH2            DATA 0xcd
+0000            136   _TL2            DATA 0xcc
+0000            137   _SPCON          DATA 0xc3
+0000            138   _SPSTA          DATA 0xc4
+0000            139   _SPDAT          DATA 0xc5
+0000            140   _SSCON          DATA 0x93
+0000            141   _SSCS           DATA 0x94
+0000            142   _SSDAT          DATA 0x95
+0000            143   _SSADR          DATA 0x96
+0000            144   _KBLS           DATA 0x9c
+0000            145   _KBE            DATA 0x9d
+0000            146   _KBF            DATA 0x9e
+0000            147   _KBMOD          DATA 0x9f
+0000            148   _BMSEL          DATA 0x92
+0000            149   _FCON           DATA 0xd2
+0000            150   _EECON          DATA 0xd2
+0000            151   _ACSRA          DATA 0xa3
+0000            152   _ACSRB          DATA 0xab
+0000            153   _AREF           DATA 0xbd
+0000            154   _DADC           DATA 0xa4
+0000            155   _DADI           DATA 0xa5
+0000            156   _DADL           DATA 0xac
+0000            157   _DADH           DATA 0xad
+0000            158   _CCON           DATA 0xd8
+0000            159   _CMOD           DATA 0xd9
+0000            160   _CL             DATA 0xe9
+0000            161   _CH             DATA 0xf9
+0000            162   _CCAPM0         DATA 0xda
+0000            163   _CCAPM1         DATA 0xdb
+0000            164   _CCAPM2         DATA 0xdc
+0000            165   _CCAPM3         DATA 0xdd
+0000            166   _CCAPM4         DATA 0xde
+0000            167   _CCAP0H         DATA 0xfa
+0000            168   _CCAP1H         DATA 0xfb
+0000            169   _CCAP2H         DATA 0xfc
+0000            170   _CCAP3H         DATA 0xfd
+0000            171   _CCAP4H         DATA 0xfe
+0000            172   _CCAP0L         DATA 0xea
+0000            173   _CCAP1L         DATA 0xeb
+0000            174   _CCAP2L         DATA 0xec
+0000            175   _CCAP3L         DATA 0xed
+0000            176   _CCAP4L         DATA 0xee
+0000            177   ;--------------------------------------------------------
+0000            178   ; special function bits
+0000            179   ;--------------------------------------------------------
+0000            180   _ACC_0          BIT 0xe0
+0000            181   _ACC_1          BIT 0xe1
+0000            182   _ACC_2          BIT 0xe2
+0000            183   _ACC_3          BIT 0xe3
+0000            184   _ACC_4          BIT 0xe4
+0000            185   _ACC_5          BIT 0xe5
+0000            186   _ACC_6          BIT 0xe6
+0000            187   _ACC_7          BIT 0xe7
+0000            188   _B_0            BIT 0xf0
+0000            189   _B_1            BIT 0xf1
+0000            190   _B_2            BIT 0xf2
+0000            191   _B_3            BIT 0xf3
+0000            192   _B_4            BIT 0xf4
+0000            193   _B_5            BIT 0xf5
+0000            194   _B_6            BIT 0xf6
+0000            195   _B_7            BIT 0xf7
+0000            196   _P              BIT 0xd0
+0000            197   _F1             BIT 0xd1
+0000            198   _OV             BIT 0xd2
+0000            199   _RS0            BIT 0xd3
+0000            200   _RS1            BIT 0xd4
+0000            201   _F0             BIT 0xd5
+0000            202   _AC             BIT 0xd6
+0000            203   _CY             BIT 0xd7
+0000            204   _EX0            BIT 0xa8
+0000            205   _ET0            BIT 0xa9
+0000            206   _EX1            BIT 0xaa
+0000            207   _ET1            BIT 0xab
+0000            208   _ES             BIT 0xac
+0000            209   _ET2            BIT 0xad
+0000            210   _EC             BIT 0xae
+0000            211   _EA             BIT 0xaf
+0000            212   _PX0            BIT 0xb8
+0000            213   _PT0            BIT 0xb9
+0000            214   _PX1            BIT 0xba
+0000            215   _PT1            BIT 0xbb
+0000            216   _PS             BIT 0xbc
+0000            217   _PT2            BIT 0xbd
+0000            218   _IP0D           BIT 0xbf
+0000            219   _PPCL           BIT 0xbe
+0000            220   _PT2L           BIT 0xbd
+0000            221   _PLS            BIT 0xbc
+0000            222   _PT1L           BIT 0xbb
+0000            223   _PX1L           BIT 0xba
+0000            224   _PT0L           BIT 0xb9
+0000            225   _PX0L           BIT 0xb8
+0000            226   _P0_0           BIT 0x80
+0000            227   _P0_1           BIT 0x81
+0000            228   _P0_2           BIT 0x82
+0000            229   _P0_3           BIT 0x83
+0000            230   _P0_4           BIT 0x84
+0000            231   _P0_5           BIT 0x85
+0000            232   _P0_6           BIT 0x86
+0000            233   _P0_7           BIT 0x87
+0000            234   _P1_0           BIT 0x90
+0000            235   _P1_1           BIT 0x91
+0000            236   _P1_2           BIT 0x92
+0000            237   _P1_3           BIT 0x93
+0000            238   _P1_4           BIT 0x94
+0000            239   _P1_5           BIT 0x95
+0000            240   _P1_6           BIT 0x96
+0000            241   _P1_7           BIT 0x97
+0000            242   _P2_0           BIT 0xa0
+0000            243   _P2_1           BIT 0xa1
+0000            244   _P2_2           BIT 0xa2
+0000            245   _P2_3           BIT 0xa3
+0000            246   _P2_4           BIT 0xa4
+0000            247   _P2_5           BIT 0xa5
+0000            248   _P2_6           BIT 0xa6
+0000            249   _P2_7           BIT 0xa7
+0000            250   _P3_0           BIT 0xb0
+0000            251   _P3_1           BIT 0xb1
+0000            252   _P3_2           BIT 0xb2
+0000            253   _P3_3           BIT 0xb3
+0000            254   _P3_4           BIT 0xb4
+0000            255   _P3_5           BIT 0xb5
+0000            256   _P3_6           BIT 0xb6
+0000            257   _P3_7           BIT 0xb7
+0000            258   _RXD            BIT 0xb0
+0000            259   _TXD            BIT 0xb1
+0000            260   _INT0           BIT 0xb2
+0000            261   _INT1           BIT 0xb3
+0000            262   _T0             BIT 0xb4
+0000            263   _T1             BIT 0xb5
+0000            264   _WR             BIT 0xb6
+0000            265   _RD             BIT 0xb7
+0000            266   _P4_0           BIT 0xc0
+0000            267   _P4_1           BIT 0xc1
+0000            268   _P4_2           BIT 0xc2
+0000            269   _P4_3           BIT 0xc3
+0000            270   _P4_4           BIT 0xc4
+0000            271   _P4_5           BIT 0xc5
+0000            272   _P4_6           BIT 0xc6
+0000            273   _P4_7           BIT 0xc7
+0000            274   _RI             BIT 0x98
+0000            275   _TI             BIT 0x99
+0000            276   _RB8            BIT 0x9a
+0000            277   _TB8            BIT 0x9b
+0000            278   _REN            BIT 0x9c
+0000            279   _SM2            BIT 0x9d
+0000            280   _SM1            BIT 0x9e
+0000            281   _SM0            BIT 0x9f
+0000            282   _IT0            BIT 0x88
+0000            283   _IE0            BIT 0x89
+0000            284   _IT1            BIT 0x8a
+0000            285   _IE1            BIT 0x8b
+0000            286   _TR0            BIT 0x8c
+0000            287   _TF0            BIT 0x8d
+0000            288   _TR1            BIT 0x8e
+0000            289   _TF1            BIT 0x8f
+0000            290   _CP_RL2         BIT 0xc8
+0000            291   _C_T2           BIT 0xc9
+0000            292   _TR2            BIT 0xca
+0000            293   _EXEN2          BIT 0xcb
+0000            294   _TCLK           BIT 0xcc
+0000            295   _RCLK           BIT 0xcd
+0000            296   _EXF2           BIT 0xce
+0000            297   _TF2            BIT 0xcf
+0000            298   _CF             BIT 0xdf
+0000            299   _CR             BIT 0xde
+0000            300   _CCF4           BIT 0xdc
+0000            301   _CCF3           BIT 0xdb
+0000            302   _CCF2           BIT 0xda
+0000            303   _CCF1           BIT 0xd9
+0000            304   _CCF0           BIT 0xd8
+0000            305   ;--------------------------------------------------------
+0000            306   ; overlayable register banks
+0000            307   ;--------------------------------------------------------
+0000            308            rbank0 segment data overlay
+0000            309   ;--------------------------------------------------------
+0000            310   ; overlayable bit register bank
+0000            311   ;--------------------------------------------------------
+0000            312            rseg BIT_BANK
+0000            313   bits:
+0000            314            ds 1
+0001            315            b0 equ  bits.0 
+0001            316            b1 equ  bits.1 
+0001            317            b2 equ  bits.2 
+0001            318            b3 equ  bits.3 
+0001            319            b4 equ  bits.4 
+0001            320            b5 equ  bits.5 
+0001            321            b6 equ  bits.6 
+0001            322            b7 equ  bits.7 
+0001            323   ;--------------------------------------------------------
+0001            324   ; internal ram data
+0001            325   ;--------------------------------------------------------
+0000            326            rseg R_DSEG
+0000            327   _angPosition:
+0000            328            ds 2
+0002            329   _prevangPosition:
+0002            330            ds 2
+0004            331   _manualMotorPos:
+0004            332            ds 2
+0006            333   _linposition:
+0006            334            ds 2
+0008            335   _angSetPoint:
+0008            336            ds 2
+000A            337   _linSetPoint:
+000A            338            ds 2
+000C            339   _angerror:
+000C            340            ds 2
+000E            341   _linerror:
+000E            342            ds 2
+0010            343   _error:
+0010            344            ds 2
+0012            345   _prevError:
+0012            346            ds 2
+0014            347   _past5:
+0014            348            ds 10
+001E            349   _errSum:
+001E            350            ds 2
+0020            351   _dErr:
+0020            352            ds 2
+0022            353   _pwm_temp:
+0022            354            ds 2
+0024            355   _angular_pwm:
+0024            356            ds 2
+0026            357   _linear_pwm:
+0026            358            ds 2
+0028            359   _count:
+0028            360            ds 2
+002A            361   _ki:
+002A            362            ds 4
+002E            363   _kd:
+002E            364            ds 4
+0032            365   _PIDcalculation_PARM_2:
+0032            366            ds 2
+0034            367   _PIDcalculation_error_1_85:
+0034            368            ds 2
+0036            369   _PIDcalculation_sloc0_1_0:
+0036            370            ds 4
+003A            371   _fivePointMovingAvg_prevError_1_93:
+003A            372            ds 2
+003C            373   ;--------------------------------------------------------
+003C            374   ; overlayable items in internal ram 
+003C            375   ;--------------------------------------------------------
+0000            376            rseg    R_OSEG
+0000            377            rseg    R_OSEG
+0000            378            rseg    R_OSEG
+0000            379   _readBits_sloc0_1_0:
+0000            380            ds 1
+0001            381            rseg    R_OSEG
+0001            382   ;--------------------------------------------------------
+0001            383   ; indirectly addressable internal ram data
+0001            384   ;--------------------------------------------------------
+0000            385            rseg R_ISEG
+0000            386   ;--------------------------------------------------------
+0000            387   ; absolute internal ram data
+0000            388   ;--------------------------------------------------------
+0000            389            DSEG
+0000            390   ;--------------------------------------------------------
+0000            391   ; bit data
+0000            392   ;--------------------------------------------------------
+0000            393            rseg R_BSEG
+0000            394   _overflow:
+0000            395            DBIT    1
+0001            396   _underflow:
+0001            397            DBIT    1
+0002            398   _readBits_stable_1_98:
+0002            399            DBIT    1
+0003            400   ;--------------------------------------------------------
+0003            401   ; paged external ram data
+0003            402   ;--------------------------------------------------------
+0000            403            rseg R_PSEG
+0000            404   ;--------------------------------------------------------
+0000            405   ; external ram data
+0000            406   ;--------------------------------------------------------
+0000            407            rseg R_XSEG
+0000            408   ;--------------------------------------------------------
+0000            409   ; absolute external ram data
+0000            410   ;--------------------------------------------------------
+0000            411            XSEG
+0000            412   ;--------------------------------------------------------
+0000            413   ; external initialized ram data
+0000            414   ;--------------------------------------------------------
+0000            415            rseg R_IXSEG
+0000            416            rseg R_HOME
+0000            417            rseg R_GSINIT
+0000            418            rseg R_CSEG
+0000            419   ;--------------------------------------------------------
+0000            420   ; Reset entry point and interrupt vectors
+0000            421   ;--------------------------------------------------------
+0000            422            CSEG at 0x0000
+0000 020100     423            ljmp    _crt0
+002B            424            CSEG at 0x002b
+002B 020100     425            ljmp    _it_timer2
+002E            426   ;--------------------------------------------------------
+002E            427   ; global & static initialisations
+002E            428   ;--------------------------------------------------------
+0000            429            rseg R_HOME
+0000            430            rseg R_GSINIT
+0000            431            rseg R_GSINIT
+0000            432   ;--------------------------------------------------------
+0000            433   ; data variables initialization
+0000            434   ;--------------------------------------------------------
+0000            435            rseg R_DINIT
+0000            436   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:69: volatile int angPosition = 1111;
+0000 756857     437            mov     _angPosition,#0x57
+0003 756904     438            mov     (_angPosition + 1),#0x04
+0006            439   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:70: volatile int prevangPosition = 0;
+0006 E4         440            clr     a
+0007 F528       441            mov     _prevangPosition,a
+0009 F529       442            mov     (_prevangPosition + 1),a
+000B            443   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:71: volatile int manualMotorPos = 100;
+000B 75D864     444            mov     _manualMotorPos,#0x64
+000E E4         445            clr     a
+000F F5D9       446            mov     (_manualMotorPos + 1),a
+0011            447   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:72: volatile int linposition = 2222;
+0011 7598AE     448            mov     _linposition,#0xAE
+0014 759908     449            mov     (_linposition + 1),#0x08
+0017            450   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:73: volatile int angSetPoint = 808;
+0017 755828     451            mov     _angSetPoint,#0x28
+001A 755903     452            mov     (_angSetPoint + 1),#0x03
+001D            453   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:74: volatile int linSetPoint = 909;
+001D 75188D     454            mov     _linSetPoint,#0x8D
+0020 751903     455            mov     (_linSetPoint + 1),#0x03
+0023            456   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:75: volatile int angerror = 0;
+0023 E4         457            clr     a
+0024 F5D8       458            mov     _angerror,a
+0026 F5D9       459            mov     (_angerror + 1),a
+0028            460   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:76: volatile int linerror = 0;
+0028 E4         461            clr     a
+0029 F598       462            mov     _linerror,a
+002B F599       463            mov     (_linerror + 1),a
+002D            464   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:78: volatile int error = 0;
+002D E4         465            clr     a
+002E F558       466            mov     _error,a
+0030 F559       467            mov     (_error + 1),a
+0032            468   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:79: volatile int prevError = 0;
+0032 E4         469            clr     a
+0033 F518       470            mov     _prevError,a
+0035 F519       471            mov     (_prevError + 1),a
+0037            472   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:81: volatile int errSum = 0;
+0037 E4         473            clr     a
+0038 F598       474            mov     _errSum,a
+003A F599       475            mov     (_errSum + 1),a
+003C            476   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:82: volatile int dErr = 0;
+003C E4         477            clr     a
+003D F558       478            mov     _dErr,a
+003F F559       479            mov     (_dErr + 1),a
+0041            480   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:84: volatile int pwm_temp = 0;
+0041 E4         481            clr     a
+0042 F518       482            mov     _pwm_temp,a
+0044 F519       483            mov     (_pwm_temp + 1),a
+0046            484   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:85: volatile int angular_pwm = 0;
+0046 E4         485            clr     a
+0047 F5D8       486            mov     _angular_pwm,a
+0049 F5D9       487            mov     (_angular_pwm + 1),a
+004B            488   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:86: volatile int linear_pwm = 0;
+004B E4         489            clr     a
+004C F598       490            mov     _linear_pwm,a
+004E F599       491            mov     (_linear_pwm + 1),a
+0050            492   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:87: volatile unsigned int count = 0;
+0050 E4         493            clr     a
+0051 F558       494            mov     _count,a
+0053 F559       495            mov     (_count + 1),a
+0055            496   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:90: volatile float ki, kd = 0;
+0055 75D000     497            mov     _kd,#0x00
+0058 75D100     498            mov     (_kd + 1),#0x00
+005B 75D200     499            mov     (_kd + 2),#0x00
+005E 75D300     500            mov     (_kd + 3),#0x00
+0061            501   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:88: volatile bit overflow = 0;
+0061 C240       502            clr     _overflow
+0063            503   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:89: volatile bit underflow = 0;
+0063 C200       504            clr     _underflow
+0065            505            ; The linker places a 'ret' at the end of segment R_DINIT.
+0065            506   ;--------------------------------------------------------
+0065            507   ; code
+0065            508   ;--------------------------------------------------------
+0000            509            rseg R_CSEG
+0000            510   ;------------------------------------------------------------
+0000            511   ;Allocation info for local variables in function '_c51_external_startup'
+0000            512   ;------------------------------------------------------------
+0000            513   ;------------------------------------------------------------
+0000            514   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:92: unsigned char _c51_external_startup(void)
+0000            515   ;        -----------------------------------------
+0000            516   ;         function _c51_external_startup
+0000            517   ;        -----------------------------------------
+0000            518   __c51_external_startup:
+0000            519            using   0
+0000            520   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:95: P0M0=0; P0M1=0;
+0000 75E600     521            mov     _P0M0,#0x00
+0003 75E700     522            mov     _P0M1,#0x00
+0006            523   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:96: P1M0=0; P1M1=0;
+0006 75D600     524            mov     _P1M0,#0x00
+0009 75D700     525            mov     _P1M1,#0x00
+000C            526   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:97: P2M0=0; P2M1=0;
+000C 75CE00     527            mov     _P2M0,#0x00
+000F 75CF00     528            mov     _P2M1,#0x00
+0012            529   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:98: P3M0=0; P3M1=0;
+0012 75C600     530            mov     _P3M0,#0x00
+0015 75C700     531            mov     _P3M1,#0x00
+0018            532   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:99: AUXR=0B_0001_0001; // 1152 bytes of internal XDATA, P4.4 is a general purpose I/O
+0018 758E11     533            mov     _AUXR,#0x11
+001B            534   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:100: P4M0=0; P4M1=0;
+001B 75BE00     535            mov     _P4M0,#0x00
+001E 75BF00     536            mov     _P4M1,#0x00
+0021            537   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:103: PCON|=0x80;
+0021 438780     538            orl     _PCON,#0x80
+0024            539   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:104: SCON = 0x52;
+0024 759852     540            mov     _SCON,#0x52
+0027            541   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:105: BDRCON=0;
+0027 759B00     542            mov     _BDRCON,#0x00
+002A            543   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:106: BRL=BRG_VAL;
+002A 759AFA     544            mov     _BRL,#0xFA
+002D            545   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:107: BDRCON=BRR|TBCK|RBCK|SPD;
+002D 759B1E     546            mov     _BDRCON,#0x1E
+0030            547   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:110: TMOD=0B_0001_0001; // 0001 is 16-bit mode (Enhanced Timer 1, p77 in docs)
+0030 758911     548            mov     _TMOD,#0x11
+0033            549   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:112: TCONB=0B_11000000; //P3_5 PWM ENABLED 
+0033 7591C0     550            mov     _TCONB,#0xC0
+0036            551   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:115: TR0=0;
+0036 C28C       552            clr     _TR0
+0038            553   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:116: TR0=1;
+0038 D28C       554            setb    _TR0
+003A            555   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:117: TR1=1;
+003A D28E       556            setb    _TR1
+003C            557   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:119: RL1=250;
+003C 75F3FA     558            mov     _RL1,#0xFA
+003F            559   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:120: RL0=250; 
+003F 75F2FA     560            mov     _RL0,#0xFA
+0042            561   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:122: RH1=128; //Pin3.5
+0042 75F580     562            mov     _RH1,#0x80
+0045            563   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:123: RH0=128; //Pin3.4
+0045 75F480     564            mov     _RH0,#0x80
+0048            565   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:127: T2MOD &= 0xFC;                /* T2OE=0;DCEN=1; */
+0048 53C9FC     566            anl     _T2MOD,#0xFC
+004B            567   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:128: T2MOD |= 0x01;                
+004B 43C901     568            orl     _T2MOD,#0x01
+004E            569   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:130: EXF2=0;                    /* reset flag */
+004E C2CE       570            clr     _EXF2
+0050            571   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:131: TCLK=0;RCLK=0;             /* disable baud rate generator */
+0050 C2CC       572            clr     _TCLK
+0052 C2CD       573            clr     _RCLK
+0054            574   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:132: EXEN2=0;                   /* ignore events on T2EX */ 
+0054 C2CB       575            clr     _EXEN2
+0056            576   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:133: TH2=MSB_reload_value;       /* Init msb_value */
+0056 75CD13     577            mov     _TH2,#0x13
+0059            578   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:134: TL2=LSB_reload_value;       /* Init lsb_value */
+0059 75CC88     579            mov     _TL2,#0x88
+005C            580   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:135: RCAP2H=MSB_reload_value;    /* reload msb_value */
+005C 75CB13     581            mov     _RCAP2H,#0x13
+005F            582   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:136: RCAP2L=LSB_reload_value;    /* reload lsb_value */
+005F 75CA88     583            mov     _RCAP2L,#0x88
+0062            584   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:137: C_T2=0;                    /* timer mode */
+0062 C2C9       585            clr     _C_T2
+0064            586   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:138: CP_RL2=0;                  /* reload mode */
+0064 C2C8       587            clr     _CP_RL2
+0066            588   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:139: EA=1;                      /* interupt enable */
+0066 D2AF       589            setb    _EA
+0068            590   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:140: ET2=1;                     /* enable timer2 interrupt */
+0068 D2AD       591            setb    _ET2
+006A            592   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:142: return 0;
+006A 758200     593            mov     dpl,#0x00
+006D 22         594            ret
+006E            595   ;------------------------------------------------------------
+006E            596   ;Allocation info for local variables in function 'it_timer2'
+006E            597   ;------------------------------------------------------------
+006E            598   ;------------------------------------------------------------
+006E            599   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:150: void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
+006E            600   ;        -----------------------------------------
+006E            601   ;         function it_timer2
+006E            602   ;        -----------------------------------------
+006E            603   _it_timer2:
+006E C008       604            push    bits
+0070 C0E0       605            push    acc
+0072 C0F0       606            push    b
+0074 C082       607            push    dpl
+0076 C083       608            push    dph
+0078 C002       609            push    (0+2)
+007A C003       610            push    (0+3)
+007C C004       611            push    (0+4)
+007E C005       612            push    (0+5)
+0080 C006       613            push    (0+6)
+0082 C007       614            push    (0+7)
+0084 C000       615            push    (0+0)
+0086 C001       616            push    (0+1)
+0088 C0D0       617            push    psw
+008A 75D000     618            mov     psw,#0x00
+008D            619   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:153: angSetPoint = GetADC(0)/3.196;         //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
+008D 758200     620            mov     dpl,#0x00
+0090 120100     621            lcall   _GetADC
+0093 120100     622            lcall   ___uint2fs
+0096 AA82       623            mov     r2,dpl
+0098 AB83       624            mov     r3,dph
+009A ACF0       625            mov     r4,b
+009C FD         626            mov     r5,a
+009D 7444       627            mov     a,#0x44
+009F C0E0       628            push    acc
+00A1 748B       629            mov     a,#0x8B
+00A3 C0E0       630            push    acc
+00A5 744C       631            mov     a,#0x4C
+00A7 C0E0       632            push    acc
+00A9 7440       633            mov     a,#0x40
+00AB C0E0       634            push    acc
+00AD 8A82       635            mov     dpl,r2
+00AF 8B83       636            mov     dph,r3
+00B1 8CF0       637            mov     b,r4
+00B3 ED         638            mov     a,r5
+00B4 120100     639            lcall   ___fsdiv
+00B7 AA82       640            mov     r2,dpl
+00B9 AB83       641            mov     r3,dph
+00BB ACF0       642            mov     r4,b
+00BD FD         643            mov     r5,a
+00BE E581       644            mov     a,sp
+00C0 24FC       645            add     a,#0xfc
+00C2 F581       646            mov     sp,a
+00C4 8A82       647            mov     dpl,r2
+00C6 8B83       648            mov     dph,r3
+00C8 8CF0       649            mov     b,r4
+00CA ED         650            mov     a,r5
+00CB 120100     651            lcall   ___fs2sint
+00CE 858258     652            mov     _angSetPoint,dpl
+00D1 858359     653            mov     (_angSetPoint + 1),dph
+00D4            654   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:154: printf( GOTO_YX, 1, 22 );
+00D4 7416       655            mov     a,#0x16
+00D6 C0E0       656            push    acc
+00D8 E4         657            clr     a
+00D9 C0E0       658            push    acc
+00DB 7401       659            mov     a,#0x01
+00DD C0E0       660            push    acc
+00DF E4         661            clr     a
+00E0 C0E0       662            push    acc
+00E2 7428       663            mov     a,#__str_0
+00E4 C0E0       664            push    acc
+00E6 7488       665            mov     a,#(__str_0 >> 8)
+00E8 C0E0       666            push    acc
+00EA 7480       667            mov     a,#0x80
+00EC C0E0       668            push    acc
+00EE 120100     669            lcall   _printf
+00F1 E581       670            mov     a,sp
+00F3 24F9       671            add     a,#0xf9
+00F5 F581       672            mov     sp,a
+00F7            673   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:155: printf("%i    ", angSetPoint);
+00F7 C058       674            push    _angSetPoint
+00F9 C059       675            push    (_angSetPoint + 1)
+00FB 74A8       676            mov     a,#__str_1
+00FD C0E0       677            push    acc
+00FF 7488       678            mov     a,#(__str_1 >> 8)
+0101 C0E0       679            push    acc
+0103 7480       680            mov     a,#0x80
+0105 C0E0       681            push    acc
+0107 120100     682            lcall   _printf
+010A E581       683            mov     a,sp
+010C 24FB       684            add     a,#0xfb
+010E F581       685            mov     sp,a
+0110            686   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:157: printf( GOTO_YX, 2, 22 );
+0110 7416       687            mov     a,#0x16
+0112 C0E0       688            push    acc
+0114 E4         689            clr     a
+0115 C0E0       690            push    acc
+0117 7402       691            mov     a,#0x02
+0119 C0E0       692            push    acc
+011B E4         693            clr     a
+011C C0E0       694            push    acc
+011E 7428       695            mov     a,#__str_0
+0120 C0E0       696            push    acc
+0122 7488       697            mov     a,#(__str_0 >> 8)
+0124 C0E0       698            push    acc
+0126 7480       699            mov     a,#0x80
+0128 C0E0       700            push    acc
+012A 120100     701            lcall   _printf
+012D E581       702            mov     a,sp
+012F 24F9       703            add     a,#0xf9
+0131 F581       704            mov     sp,a
+0133            705   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:158: angPosition = decode(1)/33.3333;          //HCTL1 (Sensor Resolution*4/360)*(Gear Ratio) = 6*4*500/360 = 33.333333
+0133 900001     706            mov     dptr,#0x0001
+0136 120100     707            lcall   _decode
+0139 120100     708            lcall   ___uint2fs
+013C AA82       709            mov     r2,dpl
+013E AB83       710            mov     r3,dph
+0140 ACF0       711            mov     r4,b
+0142 FD         712            mov     r5,a
+0143 744D       713            mov     a,#0x4D
+0145 C0E0       714            push    acc
+0147 7455       715            mov     a,#0x55
+0149 C0E0       716            push    acc
+014B 7405       717            mov     a,#0x05
+014D C0E0       718            push    acc
+014F 7442       719            mov     a,#0x42
+0151 C0E0       720            push    acc
+0153 8A82       721            mov     dpl,r2
+0155 8B83       722            mov     dph,r3
+0157 8CF0       723            mov     b,r4
+0159 ED         724            mov     a,r5
+015A 120100     725            lcall   ___fsdiv
+015D AA82       726            mov     r2,dpl
+015F AB83       727            mov     r3,dph
+0161 ACF0       728            mov     r4,b
+0163 FD         729            mov     r5,a
+0164 E581       730            mov     a,sp
+0166 24FC       731            add     a,#0xfc
+0168 F581       732            mov     sp,a
+016A 8A82       733            mov     dpl,r2
+016C 8B83       734            mov     dph,r3
+016E 8CF0       735            mov     b,r4
+0170 ED         736            mov     a,r5
+0171 120100     737            lcall   ___fs2sint
+0174 858268     738            mov     _angPosition,dpl
+0177 858369     739            mov     (_angPosition + 1),dph
+017A            740   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:159: printf("%i     ", angPosition);
+017A C068       741            push    _angPosition
+017C C069       742            push    (_angPosition + 1)
+017E 74E8       743            mov     a,#__str_2
+0180 C0E0       744            push    acc
+0182 7488       745            mov     a,#(__str_2 >> 8)
+0184 C0E0       746            push    acc
+0186 7480       747            mov     a,#0x80
+0188 C0E0       748            push    acc
+018A 120100     749            lcall   _printf
+018D E581       750            mov     a,sp
+018F 24FB       751            add     a,#0xfb
+0191 F581       752            mov     sp,a
+0193            753   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:175: angerror = angSetPoint - angPosition;
+0193 E558       754            mov     a,_angSetPoint
+0195 C3         755            clr     c
+0196 9568       756            subb    a,_angPosition
+0198 F5D8       757            mov     _angerror,a
+019A E559       758            mov     a,(_angSetPoint + 1)
+019C 9569       759            subb    a,(_angPosition + 1)
+019E F5D9       760            mov     (_angerror + 1),a
+01A0            761   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:176: angular_pwm = PIDcalculation(angerror, 1);
+01A0 759001     762            mov     _PIDcalculation_PARM_2,#0x01
+01A3 E4         763            clr     a
+01A4 F591       764            mov     (_PIDcalculation_PARM_2 + 1),a
+01A6 85D882     765            mov     dpl,_angerror
+01A9 85D983     766            mov     dph,(_angerror + 1)
+01AC 120100     767            lcall   _PIDcalculation
+01AF 8582D8     768            mov     _angular_pwm,dpl
+01B2 8583D9     769            mov     (_angular_pwm + 1),dph
+01B5            770   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:178: RH1 = angSetPoint/1.252;
+01B5 855882     771            mov     dpl,_angSetPoint
+01B8 855983     772            mov     dph,(_angSetPoint + 1)
+01BB 120100     773            lcall   ___sint2fs
+01BE AA82       774            mov     r2,dpl
+01C0 AB83       775            mov     r3,dph
+01C2 ACF0       776            mov     r4,b
+01C4 FD         777            mov     r5,a
+01C5 7489       778            mov     a,#0x89
+01C7 C0E0       779            push    acc
+01C9 7441       780            mov     a,#0x41
+01CB C0E0       781            push    acc
+01CD 74A0       782            mov     a,#0xA0
+01CF C0E0       783            push    acc
+01D1 743F       784            mov     a,#0x3F
+01D3 C0E0       785            push    acc
+01D5 8A82       786            mov     dpl,r2
+01D7 8B83       787            mov     dph,r3
+01D9 8CF0       788            mov     b,r4
+01DB ED         789            mov     a,r5
+01DC 120100     790            lcall   ___fsdiv
+01DF AA82       791            mov     r2,dpl
+01E1 AB83       792            mov     r3,dph
+01E3 ACF0       793            mov     r4,b
+01E5 FD         794            mov     r5,a
+01E6 E581       795            mov     a,sp
+01E8 24FC       796            add     a,#0xfc
+01EA F581       797            mov     sp,a
+01EC 8A82       798            mov     dpl,r2
+01EE 8B83       799            mov     dph,r3
+01F0 8CF0       800            mov     b,r4
+01F2 ED         801            mov     a,r5
+01F3 120100     802            lcall   ___fs2uchar
+01F6 8582F5     803            mov     _RH1,dpl
+01F9            804   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:179: printf( GOTO_YX, 3, 22);
+01F9 7416       805            mov     a,#0x16
+01FB C0E0       806            push    acc
+01FD E4         807            clr     a
+01FE C0E0       808            push    acc
+0200 7403       809            mov     a,#0x03
+0202 C0E0       810            push    acc
+0204 E4         811            clr     a
+0205 C0E0       812            push    acc
+0207 7428       813            mov     a,#__str_0
+0209 C0E0       814            push    acc
+020B 7488       815            mov     a,#(__str_0 >> 8)
+020D C0E0       816            push    acc
+020F 7480       817            mov     a,#0x80
+0211 C0E0       818            push    acc
+0213 120100     819            lcall   _printf
+0216 E581       820            mov     a,sp
+0218 24F9       821            add     a,#0xf9
+021A F581       822            mov     sp,a
+021C            823   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:180: printf("%i    ", RH1);
+021C AAF5       824            mov     r2,_RH1
+021E 7B00       825            mov     r3,#0x00
+0220 C002       826            push    ar2
+0222 C003       827            push    ar3
+0224 74A8       828            mov     a,#__str_1
+0226 C0E0       829            push    acc
+0228 7488       830            mov     a,#(__str_1 >> 8)
+022A C0E0       831            push    acc
+022C 7480       832            mov     a,#0x80
+022E C0E0       833            push    acc
+0230 120100     834            lcall   _printf
+0233 E581       835            mov     a,sp
+0235 24FB       836            add     a,#0xfb
+0237 F581       837            mov     sp,a
+0239            838   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:183: linSetPoint = GetADC(1);    //Linear Pot Reading out of 1000
+0239 758201     839            mov     dpl,#0x01
+023C 120100     840            lcall   _GetADC
+023F 858218     841            mov     _linSetPoint,dpl
+0242 858319     842            mov     (_linSetPoint + 1),dph
+0245            843   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:184: printf( GOTO_YX, 5, 22 );
+0245 7416       844            mov     a,#0x16
+0247 C0E0       845            push    acc
+0249 E4         846            clr     a
+024A C0E0       847            push    acc
+024C 7405       848            mov     a,#0x05
+024E C0E0       849            push    acc
+0250 E4         850            clr     a
+0251 C0E0       851            push    acc
+0253 7428       852            mov     a,#__str_0
+0255 C0E0       853            push    acc
+0257 7488       854            mov     a,#(__str_0 >> 8)
+0259 C0E0       855            push    acc
+025B 7480       856            mov     a,#0x80
+025D C0E0       857            push    acc
+025F 120100     858            lcall   _printf
+0262 E581       859            mov     a,sp
+0264 24F9       860            add     a,#0xf9
+0266 F581       861            mov     sp,a
+0268            862   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:185: printf("%i    ", linSetPoint);
+0268 C018       863            push    _linSetPoint
+026A C019       864            push    (_linSetPoint + 1)
+026C 74A8       865            mov     a,#__str_1
+026E C0E0       866            push    acc
+0270 7488       867            mov     a,#(__str_1 >> 8)
+0272 C0E0       868            push    acc
+0274 7480       869            mov     a,#0x80
+0276 C0E0       870            push    acc
+0278 120100     871            lcall   _printf
+027B E581       872            mov     a,sp
+027D 24FB       873            add     a,#0xfb
+027F F581       874            mov     sp,a
+0281            875   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:188: linposition = decode(2)/17.7777;   //HCTL2 (Sensor Resolution*4/360)*(Gear Ratio) = 17.777777777 = 1 count per turn;
+0281 900002     876            mov     dptr,#0x0002
+0284 120100     877            lcall   _decode
+0287 120100     878            lcall   ___uint2fs
+028A AA82       879            mov     r2,dpl
+028C AB83       880            mov     r3,dph
+028E ACF0       881            mov     r4,b
+0290 FD         882            mov     r5,a
+0291 74BB       883            mov     a,#0xBB
+0293 C0E0       884            push    acc
+0295 7438       885            mov     a,#0x38
+0297 C0E0       886            push    acc
+0299 748E       887            mov     a,#0x8E
+029B C0E0       888            push    acc
+029D 7441       889            mov     a,#0x41
+029F C0E0       890            push    acc
+02A1 8A82       891            mov     dpl,r2
+02A3 8B83       892            mov     dph,r3
+02A5 8CF0       893            mov     b,r4
+02A7 ED         894            mov     a,r5
+02A8 120100     895            lcall   ___fsdiv
+02AB AA82       896            mov     r2,dpl
+02AD AB83       897            mov     r3,dph
+02AF ACF0       898            mov     r4,b
+02B1 FD         899            mov     r5,a
+02B2 E581       900            mov     a,sp
+02B4 24FC       901            add     a,#0xfc
+02B6 F581       902            mov     sp,a
+02B8 8A82       903            mov     dpl,r2
+02BA 8B83       904            mov     dph,r3
+02BC 8CF0       905            mov     b,r4
+02BE ED         906            mov     a,r5
+02BF 120100     907            lcall   ___fs2sint
+02C2 858298     908            mov     _linposition,dpl
+02C5 858399     909            mov     (_linposition + 1),dph
+02C8            910   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:191: linearOverflowCount(linposition);
+02C8 859882     911            mov     dpl,_linposition
+02CB 859983     912            mov     dph,(_linposition + 1)
+02CE 120100     913            lcall   _linearOverflowCount
+02D1            914   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:192: linposition = (linposition + (count*3686))/56;
+02D1 855800     915            mov     __mulint_PARM_2,_count
+02D4 855901     916            mov     (__mulint_PARM_2 + 1),(_count + 1)
+02D7 900E66     917            mov     dptr,#0x0E66
+02DA 120100     918            lcall   __mulint
+02DD AA82       919            mov     r2,dpl
+02DF AB83       920            mov     r3,dph
+02E1 AC98       921            mov     r4,_linposition
+02E3 AD99       922            mov     r5,(_linposition + 1)
+02E5 EA         923            mov     a,r2
+02E6 2C         924            add     a,r4
+02E7 F582       925            mov     dpl,a
+02E9 EB         926            mov     a,r3
+02EA 3D         927            addc    a,r5
+02EB F583       928            mov     dph,a
+02ED 750038     929            mov     __divuint_PARM_2,#0x38
+02F0 E4         930            clr     a
+02F1 F501       931            mov     (__divuint_PARM_2 + 1),a
+02F3 120100     932            lcall   __divuint
+02F6 858298     933            mov     _linposition,dpl
+02F9 858399     934            mov     (_linposition + 1),dph
+02FC            935   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:193: printf( GOTO_YX, 6, 22 );
+02FC 7416       936            mov     a,#0x16
+02FE C0E0       937            push    acc
+0300 E4         938            clr     a
+0301 C0E0       939            push    acc
+0303 7406       940            mov     a,#0x06
+0305 C0E0       941            push    acc
+0307 E4         942            clr     a
+0308 C0E0       943            push    acc
+030A 7428       944            mov     a,#__str_0
+030C C0E0       945            push    acc
+030E 7488       946            mov     a,#(__str_0 >> 8)
+0310 C0E0       947            push    acc
+0312 7480       948            mov     a,#0x80
+0314 C0E0       949            push    acc
+0316 120100     950            lcall   _printf
+0319 E581       951            mov     a,sp
+031B 24F9       952            add     a,#0xf9
+031D F581       953            mov     sp,a
+031F            954   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:194: printf("%i     ", linposition);
+031F C098       955            push    _linposition
+0321 C099       956            push    (_linposition + 1)
+0323 74E8       957            mov     a,#__str_2
+0325 C0E0       958            push    acc
+0327 7488       959            mov     a,#(__str_2 >> 8)
+0329 C0E0       960            push    acc
+032B 7480       961            mov     a,#0x80
+032D C0E0       962            push    acc
+032F 120100     963            lcall   _printf
+0332 E581       964            mov     a,sp
+0334 24FB       965            add     a,#0xfb
+0336 F581       966            mov     sp,a
+0338            967   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:197: linerror = linSetPoint - linposition;
+0338 E518       968            mov     a,_linSetPoint
+033A C3         969            clr     c
+033B 9598       970            subb    a,_linposition
+033D F598       971            mov     _linerror,a
+033F E519       972            mov     a,(_linSetPoint + 1)
+0341 9599       973            subb    a,(_linposition + 1)
+0343 F599       974            mov     (_linerror + 1),a
+0345            975   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:198: linear_pwm = PIDcalculation(linerror, 2);
+0345 759002     976            mov     _PIDcalculation_PARM_2,#0x02
+0348 E4         977            clr     a
+0349 F591       978            mov     (_PIDcalculation_PARM_2 + 1),a
+034B 859882     979            mov     dpl,_linerror
+034E 859983     980            mov     dph,(_linerror + 1)
+0351 120100     981            lcall   _PIDcalculation
+0354 858298     982            mov     _linear_pwm,dpl
+0357 858399     983            mov     (_linear_pwm + 1),dph
+035A            984   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:200: RH0 = linear_pwm;
+035A 8598F4     985            mov     _RH0,_linear_pwm
+035D            986   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:201: printf( GOTO_YX, 7, 22);
+035D 7416       987            mov     a,#0x16
+035F C0E0       988            push    acc
+0361 E4         989            clr     a
+0362 C0E0       990            push    acc
+0364 7407       991            mov     a,#0x07
+0366 C0E0       992            push    acc
+0368 E4         993            clr     a
+0369 C0E0       994            push    acc
+036B 7428       995            mov     a,#__str_0
+036D C0E0       996            push    acc
+036F 7488       997            mov     a,#(__str_0 >> 8)
+0371 C0E0       998            push    acc
+0373 7480       999            mov     a,#0x80
+0375 C0E0      1000            push    acc
+0377 120100    1001            lcall   _printf
+037A E581      1002            mov     a,sp
+037C 24F9      1003            add     a,#0xf9
+037E F581      1004            mov     sp,a
+0380           1005   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:202: printf("%i    ", RH0);
+0380 AAF4      1006            mov     r2,_RH0
+0382 7B00      1007            mov     r3,#0x00
+0384 C002      1008            push    ar2
+0386 C003      1009            push    ar3
+0388 74A8      1010            mov     a,#__str_1
+038A C0E0      1011            push    acc
+038C 7488      1012            mov     a,#(__str_1 >> 8)
+038E C0E0      1013            push    acc
+0390 7480      1014            mov     a,#0x80
+0392 C0E0      1015            push    acc
+0394 120100    1016            lcall   _printf
+0397 E581      1017            mov     a,sp
+0399 24FB      1018            add     a,#0xfb
+039B F581      1019            mov     sp,a
+039D D0D0      1020            pop     psw
+039F D001      1021            pop     (0+1)
+03A1 D000      1022            pop     (0+0)
+03A3 D007      1023            pop     (0+7)
+03A5 D006      1024            pop     (0+6)
+03A7 D005      1025            pop     (0+5)
+03A9 D004      1026            pop     (0+4)
+03AB D003      1027            pop     (0+3)
+03AD D002      1028            pop     (0+2)
+03AF D083      1029            pop     dph
+03B1 D082      1030            pop     dpl
+03B3 D0F0      1031            pop     b
+03B5 D0E0      1032            pop     acc
+03B7 D008      1033            pop     bits
+03B9 32        1034            reti
+03BA           1035   ;------------------------------------------------------------
+03BA           1036   ;Allocation info for local variables in function 'main'
+03BA           1037   ;------------------------------------------------------------
+03BA           1038   ;------------------------------------------------------------
+03BA           1039   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:210: void main (void)
+03BA           1040   ;        -----------------------------------------
+03BA           1041   ;         function main
+03BA           1042   ;        -----------------------------------------
+03BA           1043   _main:
+03BA           1044   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:213: resetHCTL(1);
+03BA 900001    1045            mov     dptr,#0x0001
+03BD 120100    1046            lcall   _resetHCTL
+03C0           1047   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:214: resetHCTL(2);
+03C0 900002    1048            mov     dptr,#0x0002
+03C3 120100    1049            lcall   _resetHCTL
+03C6           1050   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:216: printf( FORE_BACK, COLOR_BLACK, COLOR_WHITE );
+03C6 7407      1051            mov     a,#0x07
+03C8 C0E0      1052            push    acc
+03CA E4        1053            clr     a
+03CB C0E0      1054            push    acc
+03CD E4        1055            clr     a
+03CE C0E0      1056            push    acc
+03D0 C0E0      1057            push    acc
+03D2 74B8      1058            mov     a,#__str_3
+03D4 C0E0      1059            push    acc
+03D6 748A      1060            mov     a,#(__str_3 >> 8)
+03D8 C0E0      1061            push    acc
+03DA 7480      1062            mov     a,#0x80
+03DC C0E0      1063            push    acc
+03DE 120100    1064            lcall   _printf
+03E1 E581      1065            mov     a,sp
+03E3 24F9      1066            add     a,#0xf9
+03E5 F581      1067            mov     sp,a
+03E7           1068   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:217: printf( CLEAR_SCREEN );
+03E7 74F8      1069            mov     a,#__str_4
+03E9 C0E0      1070            push    acc
+03EB 748A      1071            mov     a,#(__str_4 >> 8)
+03ED C0E0      1072            push    acc
+03EF 7480      1073            mov     a,#0x80
+03F1 C0E0      1074            push    acc
+03F3 120100    1075            lcall   _printf
+03F6 1581      1076            dec     sp
+03F8 1581      1077            dec     sp
+03FA 1581      1078            dec     sp
+03FC           1079   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:220: while(P1_3 == 0){
+03FC           1080   L004001?:
+03FC 209378    1081            jb      _P1_3,L004003?
+03FF           1082   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:221: RH0 = 0;
+03FF 75F400    1083            mov     _RH0,#0x00
+0402 8001      1084            sjmp    L004001?
+0404           1085   L004003?:
+0404           1086   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:224: printf( GOTO_YX, 1, 1);
+0404 7401      1087            mov     a,#0x01
+0406 C0E0      1088            push    acc
+0408 E4        1089            clr     a
+0409 C0E0      1090            push    acc
+040B 7401      1091            mov     a,#0x01
+040D C0E0      1092            push    acc
+040F E4        1093            clr     a
+0410 C0E0      1094            push    acc
+0412 7428      1095            mov     a,#__str_0
+0414 C0E0      1096            push    acc
+0416 7488      1097            mov     a,#(__str_0 >> 8)
+0418 C0E0      1098            push    acc
+041A 7480      1099            mov     a,#0x80
+041C C0E0      1100            push    acc
+041E 120100    1101            lcall   _printf
+0421 E581      1102            mov     a,sp
+0423 24F9      1103            add     a,#0xf9
+0425 F581      1104            mov     sp,a
+0427           1105   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:225: printf("Setpoint Angle   ::: ");                    //1
+0427 74B8      1106            mov     a,#__str_5
+0429 C0E0      1107            push    acc
+042B 748B      1108            mov     a,#(__str_5 >> 8)
+042D C0E0      1109            push    acc
+042F 7480      1110            mov     a,#0x80
+0431 C0E0      1111            push    acc
+0433 120100    1112            lcall   _printf
+0436 1581      1113            dec     sp
+0438 1581      1114            dec     sp
+043A 1581      1115            dec     sp
+043C           1116   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:226: printf("\nMotor Angle      :::");                   //2
+043C 74F8      1117            mov     a,#__str_6
+043E C0E0      1118            push    acc
+0440 748B      1119            mov     a,#(__str_6 >> 8)
+0442 C0E0      1120            push    acc
+0444 7480      1121            mov     a,#0x80
+0446 C0E0      1122            push    acc
+0448 120100    1123            lcall   _printf
+044B 1581      1124            dec     sp
+044D 1581      1125            dec     sp
+044F 1581      1126            dec     sp
+0451           1127   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:227: printf("\nAngular PWM      ::: ");                  //3
+0451 7438      1128            mov     a,#__str_7
+0453 C0E0      1129            push    acc
+0455 748C      1130            mov     a,#(__str_7 >> 8)
+0457 C0E0      1131            push    acc
+0459 7480      1132            mov     a,#0x80
+045B C0E0      1133            push    acc
+045D 120100    1134            lcall   _printf
+0460 1581      1135            dec     sp
+0462 1581      1136            dec     sp
+0464 1581      1137            dec     sp
+0466           1138   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:229: printf("\n\nLinear Setpoint  ::: ");                //5
+0466 7478      1139            mov     a,#__str_8
+0468 C0E0      1140            push    acc
+046A 748C      1141            mov     a,#(__str_8 >> 8)
+046C C0E0      1142            push    acc
+046E 7480      1143            mov     a,#0x80
+0470 C0E0      1144            push    acc
+0472 120100    1145            lcall   _printf
+0475 1581      1146            dec     sp
+0477 1581      1147            dec     sp
+0479 1581      1148            dec     sp
+047B           1149   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:230: printf("\nLin Motor y-Pos  ::: ");                  //6
+047B 74B8      1150            mov     a,#__str_9
+047D C0E0      1151            push    acc
+047F 748C      1152            mov     a,#(__str_9 >> 8)
+0481 C0E0      1153            push    acc
+0483 7480      1154            mov     a,#0x80
+0485 C0E0      1155            push    acc
+0487 120100    1156            lcall   _printf
+048A 1581      1157            dec     sp
+048C 1581      1158            dec     sp
+048E 1581      1159            dec     sp
+0490           1160   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:231: printf("\nLinear PWM             ::: ");            //7
+0490 74F8      1161            mov     a,#__str_10
+0492 C0E0      1162            push    acc
+0494 748C      1163            mov     a,#(__str_10 >> 8)
+0496 C0E0      1164            push    acc
+0498 7480      1165            mov     a,#0x80
+049A C0E0      1166            push    acc
+049C 120100    1167            lcall   _printf
+049F 1581      1168            dec     sp
+04A1 1581      1169            dec     sp
+04A3 1581      1170            dec     sp
+04A5           1171   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:239: TR2=1;
+04A5 D2CA      1172            setb    _TR2
+04A7           1173   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:241: while(1){
+04A7           1174   L004007?:
+04A7           1175   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:243: printf( FORE_BACK, COLOR_BLACK, COLOR_WHITE );
+04A7 7407      1176            mov     a,#0x07
+04A9 C0E0      1177            push    acc
+04AB E4        1178            clr     a
+04AC C0E0      1179            push    acc
+04AE E4        1180            clr     a
+04AF C0E0      1181            push    acc
+04B1 C0E0      1182            push    acc
+04B3 74B8      1183            mov     a,#__str_3
+04B5 C0E0      1184            push    acc
+04B7 748A      1185            mov     a,#(__str_3 >> 8)
+04B9 C0E0      1186            push    acc
+04BB 7480      1187            mov     a,#0x80
+04BD C0E0      1188            push    acc
+04BF 120100    1189            lcall   _printf
+04C2 E581      1190            mov     a,sp
+04C4 24F9      1191            add     a,#0xf9
+04C6 F581      1192            mov     sp,a
+04C8           1193   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:244: printf( CLEAR_SCREEN );
+04C8 74F8      1194            mov     a,#__str_4
+04CA C0E0      1195            push    acc
+04CC 748A      1196            mov     a,#(__str_4 >> 8)
+04CE C0E0      1197            push    acc
+04D0 7480      1198            mov     a,#0x80
+04D2 C0E0      1199            push    acc
+04D4 120100    1200            lcall   _printf
+04D7 1581      1201            dec     sp
+04D9 1581      1202            dec     sp
+04DB 1581      1203            dec     sp
+04DD           1204   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:246: printf( GOTO_YX, 1, 1);
+04DD 7401      1205            mov     a,#0x01
+04DF C0E0      1206            push    acc
+04E1 E4        1207            clr     a
+04E2 C0E0      1208            push    acc
+04E4 7401      1209            mov     a,#0x01
+04E6 C0E0      1210            push    acc
+04E8 E4        1211            clr     a
+04E9 C0E0      1212            push    acc
+04EB 7428      1213            mov     a,#__str_0
+04ED C0E0      1214            push    acc
+04EF 7488      1215            mov     a,#(__str_0 >> 8)
+04F1 C0E0      1216            push    acc
+04F3 7480      1217            mov     a,#0x80
+04F5 C0E0      1218            push    acc
+04F7 120100    1219            lcall   _printf
+04FA E581      1220            mov     a,sp
+04FC 24F9      1221            add     a,#0xf9
+04FE F581      1222            mov     sp,a
+0500           1223   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:247: printf("Setpoint Angle   ::: ");                    //1
+0500 74B8      1224            mov     a,#__str_5
+0502 C0E0      1225            push    acc
+0504 748B      1226            mov     a,#(__str_5 >> 8)
+0506 C0E0      1227            push    acc
+0508 7480      1228            mov     a,#0x80
+050A C0E0      1229            push    acc
+050C 120100    1230            lcall   _printf
+050F 1581      1231            dec     sp
+0511 1581      1232            dec     sp
+0513 1581      1233            dec     sp
+0515           1234   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:248: printf("\nMotor Angle      :::");                   //2
+0515 74F8      1235            mov     a,#__str_6
+0517 C0E0      1236            push    acc
+0519 748B      1237            mov     a,#(__str_6 >> 8)
+051B C0E0      1238            push    acc
+051D 7480      1239            mov     a,#0x80
+051F C0E0      1240            push    acc
+0521 120100    1241            lcall   _printf
+0524 1581      1242            dec     sp
+0526 1581      1243            dec     sp
+0528 1581      1244            dec     sp
+052A           1245   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:249: printf("\nAngular PWM      ::: ");                  //3
+052A 7438      1246            mov     a,#__str_7
+052C C0E0      1247            push    acc
+052E 748C      1248            mov     a,#(__str_7 >> 8)
+0530 C0E0      1249            push    acc
+0532 7480      1250            mov     a,#0x80
+0534 C0E0      1251            push    acc
+0536 120100    1252            lcall   _printf
+0539 1581      1253            dec     sp
+053B 1581      1254            dec     sp
+053D 1581      1255            dec     sp
+053F           1256   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:251: printf("\n\nLinear Setpoint  ::: ");                //5
+053F 7478      1257            mov     a,#__str_8
+0541 C0E0      1258            push    acc
+0543 748C      1259            mov     a,#(__str_8 >> 8)
+0545 C0E0      1260            push    acc
+0547 7480      1261            mov     a,#0x80
+0549 C0E0      1262            push    acc
+054B 120100    1263            lcall   _printf
+054E 1581      1264            dec     sp
+0550 1581      1265            dec     sp
+0552 1581      1266            dec     sp
+0554           1267   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:252: printf("\nLin Motor y-Pos  ::: ");                  //6
+0554 74B8      1268            mov     a,#__str_9
+0556 C0E0      1269            push    acc
+0558 748C      1270            mov     a,#(__str_9 >> 8)
+055A C0E0      1271            push    acc
+055C 7480      1272            mov     a,#0x80
+055E C0E0      1273            push    acc
+0560 120100    1274            lcall   _printf
+0563 1581      1275            dec     sp
+0565 1581      1276            dec     sp
+0567 1581      1277            dec     sp
+0569           1278   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:253: printf("\nLinear PWM             ::: ");            //7
+0569 74F8      1279            mov     a,#__str_10
+056B C0E0      1280            push    acc
+056D 748C      1281            mov     a,#(__str_10 >> 8)
+056F C0E0      1282            push    acc
+0571 7480      1283            mov     a,#0x80
+0573 C0E0      1284            push    acc
+0575 120100    1285            lcall   _printf
+0578 1581      1286            dec     sp
+057A 1581      1287            dec     sp
+057C 1581      1288            dec     sp
+057E           1289   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:255: if(P1_3 == 1)printf("Switch 5V");   //resetHCTL(2); /
+057E 209378    1290            jb      _P1_3,L004016?
+0581 020100    1291            ljmp    L004007?
+0584           1292   L004016?:
+0584 74B8      1293            mov     a,#__str_11
+0586 C0E0      1294            push    acc
+0588 748D      1295            mov     a,#(__str_11 >> 8)
+058A C0E0      1296            push    acc
+058C 7480      1297            mov     a,#0x80
+058E C0E0      1298            push    acc
+0590 120100    1299            lcall   _printf
+0593 1581      1300            dec     sp
+0595 1581      1301            dec     sp
+0597 1581      1302            dec     sp
+0599 020100    1303            ljmp    L004007?
+059C           1304   ;------------------------------------------------------------
+059C           1305   ;Allocation info for local variables in function 'linearOverflowCount'
+059C           1306   ;------------------------------------------------------------
+059C           1307   ;linposition               Allocated to registers r2 r3 
+059C           1308   ;------------------------------------------------------------
+059C           1309   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:259: void linearOverflowCount (int linposition){
+059C           1310   ;        -----------------------------------------
+059C           1311   ;         function linearOverflowCount
+059C           1312   ;        -----------------------------------------
+059C           1313   _linearOverflowCount:
+059C AA82      1314            mov     r2,dpl
+059E AB83      1315            mov     r3,dph
+05A0           1316   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:260: if(overflow == 1){
+05A0 3040F8    1317            jnb     _overflow,L005004?
+05A3           1318   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:261: if(linposition < 1000)count++;
+05A3 C3        1319            clr     c
+05A4 EA        1320            mov     a,r2
+05A5 94E8      1321            subb    a,#0xE8
+05A7 EB        1322            mov     a,r3
+05A8 6480      1323            xrl     a,#0x80
+05AA 9483      1324            subb    a,#0x83
+05AC 5001      1325            jnc     L005002?
+05AE 7401      1326            mov     a,#0x01
+05B0 2558      1327            add     a,_count
+05B2 F558      1328            mov     _count,a
+05B4 E4        1329            clr     a
+05B5 3559      1330            addc    a,(_count + 1)
+05B7 F559      1331            mov     (_count + 1),a
+05B9           1332   L005002?:
+05B9           1333   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:262: overflow = 0;
+05B9 C240      1334            clr     _overflow
+05BB           1335   L005004?:
+05BB           1336   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:265: if(underflow == 1){
+05BB 300078    1337            jnb     _underflow,L005008?
+05BE           1338   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:266: if(linposition > 3000)count--;
+05BE C3        1339            clr     c
+05BF 74B8      1340            mov     a,#0xB8
+05C1 9A        1341            subb    a,r2
+05C2 748B      1342            mov     a,#(0x0B ^ 0x80)
+05C4 8BF0      1343            mov     b,r3
+05C6 63F080    1344            xrl     b,#0x80
+05C9 95F0      1345            subb    a,b
+05CB 5001      1346            jnc     L005006?
+05CD 1558      1347            dec     _count
+05CF 74FF      1348            mov     a,#0xff
+05D1 B558F8    1349            cjne    a,_count,L005026?
+05D4 1559      1350            dec     (_count + 1)
+05D6           1351   L005026?:
+05D6           1352   L005006?:
+05D6           1353   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:267: underflow = 0;
+05D6 C200      1354            clr     _underflow
+05D8           1355   L005008?:
+05D8           1356   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:270: if(linposition > 3550)overflow = 1;
+05D8 C3        1357            clr     c
+05D9 74DE      1358            mov     a,#0xDE
+05DB 9A        1359            subb    a,r2
+05DC 748D      1360            mov     a,#(0x0D ^ 0x80)
+05DE 8BF0      1361            mov     b,r3
+05E0 63F080    1362            xrl     b,#0x80
+05E3 95F0      1363            subb    a,b
+05E5 5001      1364            jnc     L005012?
+05E7 D240      1365            setb    _overflow
+05E9 22        1366            ret
+05EA           1367   L005012?:
+05EA           1368   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:271: else if(linposition < 130)underflow = 1;
+05EA C3        1369            clr     c
+05EB EA        1370            mov     a,r2
+05EC 9482      1371            subb    a,#0x82
+05EE EB        1372            mov     a,r3
+05EF 6480      1373            xrl     a,#0x80
+05F1 9480      1374            subb    a,#0x80
+05F3 5001      1375            jnc     L005014?
+05F5 D200      1376            setb    _underflow
+05F7           1377   L005014?:
+05F7 22        1378            ret
+05F8           1379   ;------------------------------------------------------------
+05F8           1380   ;Allocation info for local variables in function 'PIDcalculation'
+05F8           1381   ;------------------------------------------------------------
+05F8           1382   ;mselect                   Allocated with name '_PIDcalculation_PARM_2'
+05F8           1383   ;error                     Allocated with name '_PIDcalculation_error_1_85'
+05F8           1384   ;output                    Allocated to registers r2 r3 
+05F8           1385   ;sloc0                     Allocated with name '_PIDcalculation_sloc0_1_0'
+05F8           1386   ;------------------------------------------------------------
+05F8           1387   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:274: int PIDcalculation (int error, int mselect){
+05F8           1388   ;        -----------------------------------------
+05F8           1389   ;         function PIDcalculation
+05F8           1390   ;        -----------------------------------------
+05F8           1391   _PIDcalculation:
+05F8 858218    1392            mov     _PIDcalculation_error_1_85,dpl
+05FB 858319    1393            mov     (_PIDcalculation_error_1_85 + 1),dph
+05FE           1394   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:277: if(mselect == 1){
+05FE 7401      1395            mov     a,#0x01
+0600 B590B8    1396            cjne    a,_PIDcalculation_PARM_2,L006016?
+0603 E4        1397            clr     a
+0604 B591B8    1398            cjne    a,(_PIDcalculation_PARM_2 + 1),L006016?
+0607 8001      1399            sjmp    L006017?
+0609           1400   L006016?:
+0609 8001      1401            sjmp    L006002?
+060B           1402   L006017?:
+060B           1403   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:278: ki = 0;
+060B 753000    1404            mov     _ki,#0x00
+060E 753100    1405            mov     (_ki + 1),#0x00
+0611 753200    1406            mov     (_ki + 2),#0x00
+0614 753300    1407            mov     (_ki + 3),#0x00
+0617           1408   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:279: kd = 0;
+0617 75D000    1409            mov     _kd,#0x00
+061A 75D100    1410            mov     (_kd + 1),#0x00
+061D 75D200    1411            mov     (_kd + 2),#0x00
+0620 75D300    1412            mov     (_kd + 3),#0x00
+0623           1413   L006002?:
+0623           1414   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:282: if(mselect == 2){
+0623 7402      1415            mov     a,#0x02
+0625 B59080    1416            cjne    a,_PIDcalculation_PARM_2,L006018?
+0628 E4        1417            clr     a
+0629 B59180    1418            cjne    a,(_PIDcalculation_PARM_2 + 1),L006018?
+062C 8001      1419            sjmp    L006019?
+062E           1420   L006018?:
+062E 8001      1421            sjmp    L006004?
+0630           1422   L006019?:
+0630           1423   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:283: ki = 0.5;
+0630 753000    1424            mov     _ki,#0x00
+0633 753100    1425            mov     (_ki + 1),#0x00
+0636 753200    1426            mov     (_ki + 2),#0x00
+0639 75333F    1427            mov     (_ki + 3),#0x3F
+063C           1428   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:284: kd = 0.0009; //0.1
+063C 75D0FA    1429            mov     _kd,#0xFA
+063F 75D1ED    1430            mov     (_kd + 1),#0xED
+0642 75D26B    1431            mov     (_kd + 2),#0x6B
+0645 75D33A    1432            mov     (_kd + 3),#0x3A
+0648           1433   L006004?:
+0648           1434   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:291: errSum += error * dT;
+0648 851882    1435            mov     dpl,_PIDcalculation_error_1_85
+064B 851983    1436            mov     dph,(_PIDcalculation_error_1_85 + 1)
+064E 120100    1437            lcall   ___sint2fs
+0651 AC82      1438            mov     r4,dpl
+0653 AD83      1439            mov     r5,dph
+0655 AEF0      1440            mov     r6,b
+0657 FF        1441            mov     r7,a
+0658 C004      1442            push    ar4
+065A C005      1443            push    ar5
+065C C006      1444            push    ar6
+065E C007      1445            push    ar7
+0660 C004      1446            push    ar4
+0662 C005      1447            push    ar5
+0664 C006      1448            push    ar6
+0666 C007      1449            push    ar7
+0668 9031F9    1450            mov     dptr,#0x31F9
+066B 75F0E6    1451            mov     b,#0xE6
+066E 743C      1452            mov     a,#0x3C
+0670 120100    1453            lcall   ___fsmul
+0673 858268    1454            mov     _PIDcalculation_sloc0_1_0,dpl
+0676 858369    1455            mov     (_PIDcalculation_sloc0_1_0 + 1),dph
+0679 85F06A    1456            mov     (_PIDcalculation_sloc0_1_0 + 2),b
+067C F56B      1457            mov     (_PIDcalculation_sloc0_1_0 + 3),a
+067E E581      1458            mov     a,sp
+0680 24FC      1459            add     a,#0xfc
+0682 F581      1460            mov     sp,a
+0684 859882    1461            mov     dpl,_errSum
+0687 859983    1462            mov     dph,(_errSum + 1)
+068A 120100    1463            lcall   ___sint2fs
+068D AA82      1464            mov     r2,dpl
+068F AB83      1465            mov     r3,dph
+0691 A8F0      1466            mov     r0,b
+0693 F9        1467            mov     r1,a
+0694 C068      1468            push    _PIDcalculation_sloc0_1_0
+0696 C069      1469            push    (_PIDcalculation_sloc0_1_0 + 1)
+0698 C06A      1470            push    (_PIDcalculation_sloc0_1_0 + 2)
+069A C06B      1471            push    (_PIDcalculation_sloc0_1_0 + 3)
+069C 8A82      1472            mov     dpl,r2
+069E 8B83      1473            mov     dph,r3
+06A0 88F0      1474            mov     b,r0
+06A2 E9        1475            mov     a,r1
+06A3 120100    1476            lcall   ___fsadd
+06A6 AA82      1477            mov     r2,dpl
+06A8 AB83      1478            mov     r3,dph
+06AA A8F0      1479            mov     r0,b
+06AC F9        1480            mov     r1,a
+06AD E581      1481            mov     a,sp
+06AF 24FC      1482            add     a,#0xfc
+06B1 F581      1483            mov     sp,a
+06B3 8A82      1484            mov     dpl,r2
+06B5 8B83      1485            mov     dph,r3
+06B7 88F0      1486            mov     b,r0
+06B9 E9        1487            mov     a,r1
+06BA 120100    1488            lcall   ___fs2sint
+06BD 858298    1489            mov     _errSum,dpl
+06C0 858399    1490            mov     (_errSum + 1),dph
+06C3           1491   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:292: dErr = (error - fivePointMovingAvg(prevError))/dT; //Dividing by dT makes this huge
+06C3 851882    1492            mov     dpl,_prevError
+06C6 851983    1493            mov     dph,(_prevError + 1)
+06C9 120100    1494            lcall   _fivePointMovingAvg
+06CC AA82      1495            mov     r2,dpl
+06CE AB83      1496            mov     r3,dph
+06D0 E518      1497            mov     a,_PIDcalculation_error_1_85
+06D2 C3        1498            clr     c
+06D3 9A        1499            subb    a,r2
+06D4 F582      1500            mov     dpl,a
+06D6 E519      1501            mov     a,(_PIDcalculation_error_1_85 + 1)
+06D8 9B        1502            subb    a,r3
+06D9 F583      1503            mov     dph,a
+06DB 120100    1504            lcall   ___sint2fs
+06DE AA82      1505            mov     r2,dpl
+06E0 AB83      1506            mov     r3,dph
+06E2 A8F0      1507            mov     r0,b
+06E4 F9        1508            mov     r1,a
+06E5 74F9      1509            mov     a,#0xF9
+06E7 C0E0      1510            push    acc
+06E9 7431      1511            mov     a,#0x31
+06EB C0E0      1512            push    acc
+06ED 74E6      1513            mov     a,#0xE6
+06EF C0E0      1514            push    acc
+06F1 743C      1515            mov     a,#0x3C
+06F3 C0E0      1516            push    acc
+06F5 8A82      1517            mov     dpl,r2
+06F7 8B83      1518            mov     dph,r3
+06F9 88F0      1519            mov     b,r0
+06FB E9        1520            mov     a,r1
+06FC 120100    1521            lcall   ___fsdiv
+06FF AA82      1522            mov     r2,dpl
+0701 AB83      1523            mov     r3,dph
+0703 A8F0      1524            mov     r0,b
+0705 F9        1525            mov     r1,a
+0706 E581      1526            mov     a,sp
+0708 24FC      1527            add     a,#0xfc
+070A F581      1528            mov     sp,a
+070C 8A82      1529            mov     dpl,r2
+070E 8B83      1530            mov     dph,r3
+0710 88F0      1531            mov     b,r0
+0712 E9        1532            mov     a,r1
+0713 120100    1533            lcall   ___fs2sint
+0716 858258    1534            mov     _dErr,dpl
+0719 858359    1535            mov     (_dErr + 1),dph
+071C           1536   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:295: output = kp * error + ki * errSum + kd * dErr;
+071C 859882    1537            mov     dpl,_errSum
+071F 859983    1538            mov     dph,(_errSum + 1)
+0722 120100    1539            lcall   ___sint2fs
+0725 AA82      1540            mov     r2,dpl
+0727 AB83      1541            mov     r3,dph
+0729 A8F0      1542            mov     r0,b
+072B F9        1543            mov     r1,a
+072C C002      1544            push    ar2
+072E C003      1545            push    ar3
+0730 C000      1546            push    ar0
+0732 C001      1547            push    ar1
+0734 853082    1548            mov     dpl,_ki
+0737 853183    1549            mov     dph,(_ki + 1)
+073A 8532F0    1550            mov     b,(_ki + 2)
+073D E533      1551            mov     a,(_ki + 3)
+073F 120100    1552            lcall   ___fsmul
+0742 AA82      1553            mov     r2,dpl
+0744 AB83      1554            mov     r3,dph
+0746 A8F0      1555            mov     r0,b
+0748 F9        1556            mov     r1,a
+0749 E581      1557            mov     a,sp
+074B 24FC      1558            add     a,#0xfc
+074D F581      1559            mov     sp,a
+074F D007      1560            pop     ar7
+0751 D006      1561            pop     ar6
+0753 D005      1562            pop     ar5
+0755 D004      1563            pop     ar4
+0757 C002      1564            push    ar2
+0759 C003      1565            push    ar3
+075B C000      1566            push    ar0
+075D C001      1567            push    ar1
+075F 8C82      1568            mov     dpl,r4
+0761 8D83      1569            mov     dph,r5
+0763 8EF0      1570            mov     b,r6
+0765 EF        1571            mov     a,r7
+0766 120100    1572            lcall   ___fsadd
+0769 AA82      1573            mov     r2,dpl
+076B AB83      1574            mov     r3,dph
+076D ACF0      1575            mov     r4,b
+076F FD        1576            mov     r5,a
+0770 E581      1577            mov     a,sp
+0772 24FC      1578            add     a,#0xfc
+0774 F581      1579            mov     sp,a
+0776 855882    1580            mov     dpl,_dErr
+0779 855983    1581            mov     dph,(_dErr + 1)
+077C C002      1582            push    ar2
+077E C003      1583            push    ar3
+0780 C004      1584            push    ar4
+0782 C005      1585            push    ar5
+0784 120100    1586            lcall   ___sint2fs
+0787 AE82      1587            mov     r6,dpl
+0789 AF83      1588            mov     r7,dph
+078B A8F0      1589            mov     r0,b
+078D F9        1590            mov     r1,a
+078E C006      1591            push    ar6
+0790 C007      1592            push    ar7
+0792 C000      1593            push    ar0
+0794 C001      1594            push    ar1
+0796 85D082    1595            mov     dpl,_kd
+0799 85D183    1596            mov     dph,(_kd + 1)
+079C 85D2F0    1597            mov     b,(_kd + 2)
+079F E5D3      1598            mov     a,(_kd + 3)
+07A1 120100    1599            lcall   ___fsmul
+07A4 AE82      1600            mov     r6,dpl
+07A6 AF83      1601            mov     r7,dph
+07A8 A8F0      1602            mov     r0,b
+07AA F9        1603            mov     r1,a
+07AB E581      1604            mov     a,sp
+07AD 24FC      1605            add     a,#0xfc
+07AF F581      1606            mov     sp,a
+07B1 D005      1607            pop     ar5
+07B3 D004      1608            pop     ar4
+07B5 D003      1609            pop     ar3
+07B7 D002      1610            pop     ar2
+07B9 C006      1611            push    ar6
+07BB C007      1612            push    ar7
+07BD C000      1613            push    ar0
+07BF C001      1614            push    ar1
+07C1 8A82      1615            mov     dpl,r2
+07C3 8B83      1616            mov     dph,r3
+07C5 8CF0      1617            mov     b,r4
+07C7 ED        1618            mov     a,r5
+07C8 120100    1619            lcall   ___fsadd
+07CB AA82      1620            mov     r2,dpl
+07CD AB83      1621            mov     r3,dph
+07CF ACF0      1622            mov     r4,b
+07D1 FD        1623            mov     r5,a
+07D2 E581      1624            mov     a,sp
+07D4 24FC      1625            add     a,#0xfc
+07D6 F581      1626            mov     sp,a
+07D8 8A82      1627            mov     dpl,r2
+07DA 8B83      1628            mov     dph,r3
+07DC 8CF0      1629            mov     b,r4
+07DE ED        1630            mov     a,r5
+07DF 120100    1631            lcall   ___fs2sint
+07E2 AA82      1632            mov     r2,dpl
+07E4 AB83      1633            mov     r3,dph
+07E6           1634   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:298: if(output > 127) output = 127;
+07E6 C3        1635            clr     c
+07E7 747F      1636            mov     a,#0x7F
+07E9 9A        1637            subb    a,r2
+07EA E4        1638            clr     a
+07EB 6480      1639            xrl     a,#0x80
+07ED 8BF0      1640            mov     b,r3
+07EF 63F080    1641            xrl     b,#0x80
+07F2 95F0      1642            subb    a,b
+07F4 5001      1643            jnc     L006008?
+07F6 7A7F      1644            mov     r2,#0x7F
+07F8 7B00      1645            mov     r3,#0x00
+07FA 8001      1646            sjmp    L006009?
+07FC           1647   L006008?:
+07FC           1648   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:299: else if (output < -128)output = -128;
+07FC C3        1649            clr     c
+07FD EA        1650            mov     a,r2
+07FE 9480      1651            subb    a,#0x80
+0800 EB        1652            mov     a,r3
+0801 6480      1653            xrl     a,#0x80
+0803 947F      1654            subb    a,#0x7f
+0805 5001      1655            jnc     L006009?
+0807 7A80      1656            mov     r2,#0x80
+0809 7BFF      1657            mov     r3,#0xFF
+080B           1658   L006009?:
+080B           1659   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:300: output = 128 + output;
+080B 7480      1660            mov     a,#0x80
+080D 2A        1661            add     a,r2
+080E FA        1662            mov     r2,a
+080F E4        1663            clr     a
+0810 3B        1664            addc    a,r3
+0811 FB        1665            mov     r3,a
+0812           1666   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:302: prevError = error;
+0812 851818    1667            mov     _prevError,_PIDcalculation_error_1_85
+0815 851919    1668            mov     (_prevError + 1),(_PIDcalculation_error_1_85 + 1)
+0818           1669   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:304: return output;
+0818 8A82      1670            mov     dpl,r2
+081A 8B83      1671            mov     dph,r3
+081C 22        1672            ret
+081D           1673   ;------------------------------------------------------------
+081D           1674   ;Allocation info for local variables in function 'resetHCTL'
+081D           1675   ;------------------------------------------------------------
+081D           1676   ;select                    Allocated to registers r2 r3 
+081D           1677   ;------------------------------------------------------------
+081D           1678   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:307: void resetHCTL (int select)
+081D           1679   ;        -----------------------------------------
+081D           1680   ;         function resetHCTL
+081D           1681   ;        -----------------------------------------
+081D           1682   _resetHCTL:
+081D AA82      1683            mov     r2,dpl
+081F AB83      1684            mov     r3,dph
+0821           1685   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:309: if(select == 1){
+0821 BA0140    1686            cjne    r2,#0x01,L007004?
+0824 BB0040    1687            cjne    r3,#0x00,L007004?
+0827           1688   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:310: RST1 = 0; //Clear HCTL
+0827 C291      1689            clr     _P1_1
+0829           1690   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:312: RST1 = 1;
+0829 D291      1691            setb    _P1_1
+082B 22        1692            ret
+082C           1693   L007004?:
+082C           1694   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:314: else if(select == 2){
+082C BA0280    1695            cjne    r2,#0x02,L007006?
+082F BB0080    1696            cjne    r3,#0x00,L007006?
+0832           1697   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:315: RST2 = 0;
+0832 C292      1698            clr     _P1_2
+0834           1699   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:317: RST2 = 1;
+0834 D292      1700            setb    _P1_2
+0836           1701   L007006?:
+0836 22        1702            ret
+0837           1703   ;------------------------------------------------------------
+0837           1704   ;Allocation info for local variables in function 'fivePointMovingAvg'
+0837           1705   ;------------------------------------------------------------
+0837           1706   ;prevError                 Allocated with name '_fivePointMovingAvg_prevError_1_93'
+0837           1707   ;i                         Allocated to registers r6 r7 
+0837           1708   ;avgError                  Allocated to registers 
+0837           1709   ;sum                       Allocated to registers r4 r5 
+0837           1710   ;------------------------------------------------------------
+0837           1711   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:321: int fivePointMovingAvg (int prevError){
+0837           1712   ;        -----------------------------------------
+0837           1713   ;         function fivePointMovingAvg
+0837           1714   ;        -----------------------------------------
+0837           1715   _fivePointMovingAvg:
+0837 8582C8    1716            mov     _fivePointMovingAvg_prevError_1_93,dpl
+083A 8583C9    1717            mov     (_fivePointMovingAvg_prevError_1_93 + 1),dph
+083D           1718   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:323: int avgError, sum = 0;
+083D 7C00      1719            mov     r4,#0x00
+083F 7D00      1720            mov     r5,#0x00
+0841           1721   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:326: for(i=5; i>0; i--)
+0841 7E05      1722            mov     r6,#0x05
+0843 7F00      1723            mov     r7,#0x00
+0845           1724   L008001?:
+0845 C3        1725            clr     c
+0846 E4        1726            clr     a
+0847 9E        1727            subb    a,r6
+0848 E4        1728            clr     a
+0849 6480      1729            xrl     a,#0x80
+084B 8FF0      1730            mov     b,r7
+084D 63F080    1731            xrl     b,#0x80
+0850 95F0      1732            subb    a,b
+0852 5001      1733            jnc     L008004?
+0854           1734   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:327: past5[i] = past5[i-1];
+0854 8E02      1735            mov     ar2,r6
+0856 EF        1736            mov     a,r7
+0857 CA        1737            xch     a,r2
+0858 25E0      1738            add     a,acc
+085A CA        1739            xch     a,r2
+085B 33        1740            rlc     a
+085C EA        1741            mov     a,r2
+085D 24D8      1742            add     a,#_past5
+085F F8        1743            mov     r0,a
+0860 8E02      1744            mov     ar2,r6
+0862 1A        1745            dec     r2
+0863 EA        1746            mov     a,r2
+0864 2A        1747            add     a,r2
+0865 24D8      1748            add     a,#_past5
+0867 F9        1749            mov     r1,a
+0868 8702      1750            mov     ar2,@r1
+086A 09        1751            inc     r1
+086B 8703      1752            mov     ar3,@r1
+086D 19        1753            dec     r1
+086E A602      1754            mov     @r0,ar2
+0870 08        1755            inc     r0
+0871 A603      1756            mov     @r0,ar3
+0873 18        1757            dec     r0
+0874           1758   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:326: for(i=5; i>0; i--)
+0874 1E        1759            dec     r6
+0875 BEFF40    1760            cjne    r6,#0xff,L008018?
+0878 1F        1761            dec     r7
+0879           1762   L008018?:
+0879 8001      1763            sjmp    L008001?
+087B           1764   L008004?:
+087B           1765   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:328: past5[0] = prevError;
+087B 85C8D8    1766            mov     _past5,_fivePointMovingAvg_prevError_1_93
+087E 85C9D9    1767            mov     (_past5 + 1),(_fivePointMovingAvg_prevError_1_93 + 1)
+0881           1768   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:331: for(i=6; i>0; i--)
+0881 7A06      1769            mov     r2,#0x06
+0883 7B00      1770            mov     r3,#0x00
+0885           1771   L008005?:
+0885 C3        1772            clr     c
+0886 E4        1773            clr     a
+0887 9A        1774            subb    a,r2
+0888 E4        1775            clr     a
+0889 6480      1776            xrl     a,#0x80
+088B 8BF0      1777            mov     b,r3
+088D 63F080    1778            xrl     b,#0x80
+0890 95F0      1779            subb    a,b
+0892 5001      1780            jnc     L008008?
+0894           1781   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:332: sum += past5[i];
+0894 8A06      1782            mov     ar6,r2
+0896 EB        1783            mov     a,r3
+0897 CE        1784            xch     a,r6
+0898 25E0      1785            add     a,acc
+089A CE        1786            xch     a,r6
+089B 33        1787            rlc     a
+089C EE        1788            mov     a,r6
+089D 24D8      1789            add     a,#_past5
+089F F8        1790            mov     r0,a
+08A0 8606      1791            mov     ar6,@r0
+08A2 08        1792            inc     r0
+08A3 8607      1793            mov     ar7,@r0
+08A5 18        1794            dec     r0
+08A6 EE        1795            mov     a,r6
+08A7 2C        1796            add     a,r4
+08A8 FC        1797            mov     r4,a
+08A9 EF        1798            mov     a,r7
+08AA 3D        1799            addc    a,r5
+08AB FD        1800            mov     r5,a
+08AC           1801   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:331: for(i=6; i>0; i--)
+08AC 1A        1802            dec     r2
+08AD BAFF00    1803            cjne    r2,#0xff,L008020?
+08B0 1B        1804            dec     r3
+08B1           1805   L008020?:
+08B1 8001      1806            sjmp    L008005?
+08B3           1807   L008008?:
+08B3           1808   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:333: avgError = sum / 5;
+08B3 750005    1809            mov     __divsint_PARM_2,#0x05
+08B6 E4        1810            clr     a
+08B7 F501      1811            mov     (__divsint_PARM_2 + 1),a
+08B9 8C82      1812            mov     dpl,r4
+08BB 8D83      1813            mov     dph,r5
+08BD           1814   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:335: return avgError;
+08BD 020100    1815            ljmp    __divsint
+08C0           1816   ;------------------------------------------------------------
+08C0           1817   ;Allocation info for local variables in function 'decode'
+08C0           1818   ;------------------------------------------------------------
+08C0           1819   ;OE                        Allocated to registers r2 r3 
+08C0           1820   ;result                    Allocated to registers 
+08C0           1821   ;mult                      Allocated to registers 
+08C0           1822   ;temp                      Allocated to registers r2 r3 
+08C0           1823   ;Result_lo                 Allocated to registers r7 r0 
+08C0           1824   ;Result_2nd                Allocated to registers 
+08C0           1825   ;Result_3rd                Allocated to registers r5 r6 
+08C0           1826   ;Result_hi                 Allocated to registers 
+08C0           1827   ;------------------------------------------------------------
+08C0           1828   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:362: unsigned int decode (int OE)
+08C0           1829   ;        -----------------------------------------
+08C0           1830   ;         function decode
+08C0           1831   ;        -----------------------------------------
+08C0           1832   _decode:
+08C0 AA82      1833            mov     r2,dpl
+08C2 AB83      1834            mov     r3,dph
+08C4           1835   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:372: if(OE==1)P3_6 = 1; //Disable OE
+08C4 E4        1836            clr     a
+08C5 BA01D0    1837            cjne    r2,#0x01,L009024?
+08C8 BB00D0    1838            cjne    r3,#0x00,L009024?
+08CB 04        1839            inc     a
+08CC           1840   L009024?:
+08CC FC        1841            mov     r4,a
+08CD 6001      1842            jz      L009004?
+08CF D2B6      1843            setb    _P3_6
+08D1 8001      1844            sjmp    L009005?
+08D3           1845   L009004?:
+08D3           1846   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:373: else if(OE==2)P3_7 = 1; //Disable OE
+08D3 BA0250    1847            cjne    r2,#0x02,L009005?
+08D6 BB0050    1848            cjne    r3,#0x00,L009005?
+08D9 D2B7      1849            setb    _P3_7
+08DB           1850   L009005?:
+08DB           1851   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:375: P4_3 = 0; //Sel1 TEST
+08DB C2C3      1852            clr     _P4_3
+08DD           1853   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:376: P4_4 = 1; //SEL2 = 1 (MSB)
+08DD D2C4      1854            setb    _P4_4
+08DF           1855   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:378: if(OE==1)P3_6 = 0; //Enable OE
+08DF EC        1856            mov     a,r4
+08E0 6001      1857            jz      L009009?
+08E2 C2B6      1858            clr     _P3_6
+08E4 8001      1859            sjmp    L009010?
+08E6           1860   L009009?:
+08E6           1861   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:379: else if(OE==2)P3_7 = 0; //Enable OE 
+08E6 BA02D0    1862            cjne    r2,#0x02,L009010?
+08E9 BB00D0    1863            cjne    r3,#0x00,L009010?
+08EC C2B7      1864            clr     _P3_7
+08EE           1865   L009010?:
+08EE           1866   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:381: Result_hi = readBits(OE); // Get MSB
+08EE 8A82      1867            mov     dpl,r2
+08F0 8B83      1868            mov     dph,r3
+08F2 C002      1869            push    ar2
+08F4 C003      1870            push    ar3
+08F6 C004      1871            push    ar4
+08F8 120100    1872            lcall   _readBits
+08FB D004      1873            pop     ar4
+08FD D003      1874            pop     ar3
+08FF D002      1875            pop     ar2
+0901           1876   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:382: P4_3 = 1; //SEL1 = 1 (2nd Byte)
+0901 D2C3      1877            setb    _P4_3
+0903           1878   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:383: P4_4 = 1; //SEL2 = 1 (2nd Byte)
+0903 D2C4      1879            setb    _P4_4
+0905           1880   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:384: Result_2nd  = readBits(OE);
+0905 8A82      1881            mov     dpl,r2
+0907 8B83      1882            mov     dph,r3
+0909 C002      1883            push    ar2
+090B C003      1884            push    ar3
+090D C004      1885            push    ar4
+090F 120100    1886            lcall   _readBits
+0912 D004      1887            pop     ar4
+0914 D003      1888            pop     ar3
+0916 D002      1889            pop     ar2
+0918           1890   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:385: P4_3 = 0; //SEL1 = 0 (3rd Byte)
+0918 C2C3      1891            clr     _P4_3
+091A           1892   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:386: P4_4 = 0; //SEL2 = 0 (3rd Byte)
+091A C2C4      1893            clr     _P4_4
+091C           1894   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:387: Result_3rd = readBits(OE);
+091C 8A82      1895            mov     dpl,r2
+091E 8B83      1896            mov     dph,r3
+0920 C002      1897            push    ar2
+0922 C003      1898            push    ar3
+0924 C004      1899            push    ar4
+0926 120100    1900            lcall   _readBits
+0929 AD82      1901            mov     r5,dpl
+092B AE83      1902            mov     r6,dph
+092D D004      1903            pop     ar4
+092F D003      1904            pop     ar3
+0931 D002      1905            pop     ar2
+0933           1906   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:388: P4_3 = 1; //SEL1 = 1 (LSB)
+0933 D2C3      1907            setb    _P4_3
+0935           1908   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:389: P4_4 = 0; //SEL2 = 0 (LSB)
+0935 C2C4      1909            clr     _P4_4
+0937           1910   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:390: Result_lo = readBits(OE); // Get LSB
+0937 8A82      1911            mov     dpl,r2
+0939 8B83      1912            mov     dph,r3
+093B C002      1913            push    ar2
+093D C003      1914            push    ar3
+093F C004      1915            push    ar4
+0941 C005      1916            push    ar5
+0943 C006      1917            push    ar6
+0945 120100    1918            lcall   _readBits
+0948 AF82      1919            mov     r7,dpl
+094A A883      1920            mov     r0,dph
+094C D006      1921            pop     ar6
+094E D005      1922            pop     ar5
+0950 D004      1923            pop     ar4
+0952 D003      1924            pop     ar3
+0954 D002      1925            pop     ar2
+0956           1926   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:392: if(OE==1)P3_6 = 1; //Disable OE
+0956 EC        1927            mov     a,r4
+0957 6001      1928            jz      L009014?
+0959 D2B6      1929            setb    _P3_6
+095B 8001      1930            sjmp    L009015?
+095D           1931   L009014?:
+095D           1932   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:393: else if(OE==2)P3_7 = 1; //Disable OE
+095D BA0250    1933            cjne    r2,#0x02,L009015?
+0960 BB0050    1934            cjne    r3,#0x00,L009015?
+0963 D2B7      1935            setb    _P3_7
+0965           1936   L009015?:
+0965           1937   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:400: temp = Result_3rd*mult; //Assign 3rd Byte
+0965 750000    1938            mov     __mulint_PARM_2,#0x00
+0968 750101    1939            mov     (__mulint_PARM_2 + 1),#0x01
+096B 8D82      1940            mov     dpl,r5
+096D 8E83      1941            mov     dph,r6
+096F C007      1942            push    ar7
+0971 C000      1943            push    ar0
+0973 120100    1944            lcall   __mulint
+0976 AA82      1945            mov     r2,dpl
+0978 AB83      1946            mov     r3,dph
+097A D000      1947            pop     ar0
+097C D007      1948            pop     ar7
+097E           1949   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:401: result = result + temp;
+097E EA        1950            mov     a,r2
+097F 2F        1951            add     a,r7
+0980 F582      1952            mov     dpl,a
+0982 EB        1953            mov     a,r3
+0983 38        1954            addc    a,r0
+0984 F583      1955            mov     dph,a
+0986           1956   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:411: return result;
+0986 22        1957            ret
+0987           1958   ;------------------------------------------------------------
+0987           1959   ;Allocation info for local variables in function 'readBits'
+0987           1960   ;------------------------------------------------------------
+0987           1961   ;select                    Allocated to registers r2 r3 
+0987           1962   ;num                       Allocated to registers r4 r5 
+0987           1963   ;num2                      Allocated to registers r3 r7 
+0987           1964   ;sloc0                     Allocated with name '_readBits_sloc0_1_0'
+0987           1965   ;------------------------------------------------------------
+0987           1966   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:415: unsigned int readBits(int select)
+0987           1967   ;        -----------------------------------------
+0987           1968   ;         function readBits
+0987           1969   ;        -----------------------------------------
+0987           1970   _readBits:
+0987 AA82      1971            mov     r2,dpl
+0989 AB83      1972            mov     r3,dph
+098B           1973   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:417: unsigned int num = 0, num2 = 0;
+098B 7C00      1974            mov     r4,#0x00
+098D 7D00      1975            mov     r5,#0x00
+098F           1976   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:418: bit stable = 0;
+098F C268      1977            clr     _readBits_stable_1_98
+0991           1978   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:420: while(stable == 0){
+0991 E4        1979            clr     a
+0992 BA0190    1980            cjne    r2,#0x01,L010021?
+0995 BB0090    1981            cjne    r3,#0x00,L010021?
+0998 04        1982            inc     a
+0999           1983   L010021?:
+0999 F518      1984            mov     _readBits_sloc0_1_0,a
+099B E4        1985            clr     a
+099C BA02D0    1986            cjne    r2,#0x02,L010023?
+099F BB00D0    1987            cjne    r3,#0x00,L010023?
+09A2 04        1988            inc     a
+09A3           1989   L010023?:
+09A3 FA        1990            mov     r2,a
+09A4           1991   L010010?:
+09A4 306850    1992            jnb     _readBits_stable_1_98,L010025?
+09A7 020100    1993            ljmp    L010012?
+09AA           1994   L010025?:
+09AA           1995   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:421: if(select == 1){
+09AA E518      1996            mov     a,_readBits_sloc0_1_0
+09AC 7001      1997            jnz     L010026?
+09AE 020100    1998            ljmp    L010008?
+09B1           1999   L010026?:
+09B1           2000   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:422: num = P2_7*128 + P2_6*64 + P2_5*32 + P2_4*16 + P2_3*8 + P2_2*4 + P2_1*2 + P2_0*1;
+09B1 A2A7      2001            mov     c,_P2_7
+09B3 E4        2002            clr     a
+09B4 33        2003            rlc     a
+09B5 FB        2004            mov     r3,a
+09B6 E4        2005            clr     a
+09B7 5401      2006            anl     a,#0x01
+09B9 A2E0      2007            mov     c,acc.0
+09BB CB        2008            xch     a,r3
+09BC 13        2009            rrc     a
+09BD CB        2010            xch     a,r3
+09BE 13        2011            rrc     a
+09BF CB        2012            xch     a,r3
+09C0 FF        2013            mov     r7,a
+09C1 A2A6      2014            mov     c,_P2_6
+09C3 E4        2015            clr     a
+09C4 33        2016            rlc     a
+09C5 F8        2017            mov     r0,a
+09C6 E4        2018            clr     a
+09C7 5403      2019            anl     a,#0x03
+09C9 A2E0      2020            mov     c,acc.0
+09CB C8        2021            xch     a,r0
+09CC 13        2022            rrc     a
+09CD C8        2023            xch     a,r0
+09CE 13        2024            rrc     a
+09CF A2E0      2025            mov     c,acc.0
+09D1 C8        2026            xch     a,r0
+09D2 13        2027            rrc     a
+09D3 C8        2028            xch     a,r0
+09D4 13        2029            rrc     a
+09D5 C8        2030            xch     a,r0
+09D6 F9        2031            mov     r1,a
+09D7 E8        2032            mov     a,r0
+09D8 2B        2033            add     a,r3
+09D9 FB        2034            mov     r3,a
+09DA E9        2035            mov     a,r1
+09DB 3F        2036            addc    a,r7
+09DC FF        2037            mov     r7,a
+09DD A2A5      2038            mov     c,_P2_5
+09DF E4        2039            clr     a
+09E0 33        2040            rlc     a
+09E1 F8        2041            mov     r0,a
+09E2 E4        2042            clr     a
+09E3 C4        2043            swap    a
+09E4 23        2044            rl      a
+09E5 54E0      2045            anl     a,#0xe0
+09E7 C8        2046            xch     a,r0
+09E8 C4        2047            swap    a
+09E9 23        2048            rl      a
+09EA C8        2049            xch     a,r0
+09EB 68        2050            xrl     a,r0
+09EC C8        2051            xch     a,r0
+09ED 54E0      2052            anl     a,#0xe0
+09EF C8        2053            xch     a,r0
+09F0 68        2054            xrl     a,r0
+09F1 F9        2055            mov     r1,a
+09F2 E8        2056            mov     a,r0
+09F3 2B        2057            add     a,r3
+09F4 FB        2058            mov     r3,a
+09F5 E9        2059            mov     a,r1
+09F6 3F        2060            addc    a,r7
+09F7 FF        2061            mov     r7,a
+09F8 A2A4      2062            mov     c,_P2_4
+09FA E4        2063            clr     a
+09FB 33        2064            rlc     a
+09FC F8        2065            mov     r0,a
+09FD E4        2066            clr     a
+09FE C4        2067            swap    a
+09FF 54F0      2068            anl     a,#0xf0
+0A01 C8        2069            xch     a,r0
+0A02 C4        2070            swap    a
+0A03 C8        2071            xch     a,r0
+0A04 68        2072            xrl     a,r0
+0A05 C8        2073            xch     a,r0
+0A06 54F0      2074            anl     a,#0xf0
+0A08 C8        2075            xch     a,r0
+0A09 68        2076            xrl     a,r0
+0A0A F9        2077            mov     r1,a
+0A0B E8        2078            mov     a,r0
+0A0C 2B        2079            add     a,r3
+0A0D FB        2080            mov     r3,a
+0A0E E9        2081            mov     a,r1
+0A0F 3F        2082            addc    a,r7
+0A10 FF        2083            mov     r7,a
+0A11 A2A3      2084            mov     c,_P2_3
+0A13 E4        2085            clr     a
+0A14 33        2086            rlc     a
+0A15 F8        2087            mov     r0,a
+0A16 E4        2088            clr     a
+0A17 C4        2089            swap    a
+0A18 03        2090            rr      a
+0A19 54F8      2091            anl     a,#0xf8
+0A1B C8        2092            xch     a,r0
+0A1C C4        2093            swap    a
+0A1D 03        2094            rr      a
+0A1E C8        2095            xch     a,r0
+0A1F 68        2096            xrl     a,r0
+0A20 C8        2097            xch     a,r0
+0A21 54F8      2098            anl     a,#0xf8
+0A23 C8        2099            xch     a,r0
+0A24 68        2100            xrl     a,r0
+0A25 F9        2101            mov     r1,a
+0A26 E8        2102            mov     a,r0
+0A27 2B        2103            add     a,r3
+0A28 FB        2104            mov     r3,a
+0A29 E9        2105            mov     a,r1
+0A2A 3F        2106            addc    a,r7
+0A2B FF        2107            mov     r7,a
+0A2C A2A2      2108            mov     c,_P2_2
+0A2E E4        2109            clr     a
+0A2F 33        2110            rlc     a
+0A30 F8        2111            mov     r0,a
+0A31 E4        2112            clr     a
+0A32 C8        2113            xch     a,r0
+0A33 25E0      2114            add     a,acc
+0A35 C8        2115            xch     a,r0
+0A36 33        2116            rlc     a
+0A37 C8        2117            xch     a,r0
+0A38 25E0      2118            add     a,acc
+0A3A C8        2119            xch     a,r0
+0A3B 33        2120            rlc     a
+0A3C F9        2121            mov     r1,a
+0A3D E8        2122            mov     a,r0
+0A3E 2B        2123            add     a,r3
+0A3F FB        2124            mov     r3,a
+0A40 E9        2125            mov     a,r1
+0A41 3F        2126            addc    a,r7
+0A42 FF        2127            mov     r7,a
+0A43 A2A1      2128            mov     c,_P2_1
+0A45 E4        2129            clr     a
+0A46 33        2130            rlc     a
+0A47 F8        2131            mov     r0,a
+0A48 E4        2132            clr     a
+0A49 C8        2133            xch     a,r0
+0A4A 25E0      2134            add     a,acc
+0A4C C8        2135            xch     a,r0
+0A4D 33        2136            rlc     a
+0A4E F9        2137            mov     r1,a
+0A4F E8        2138            mov     a,r0
+0A50 2B        2139            add     a,r3
+0A51 FB        2140            mov     r3,a
+0A52 E9        2141            mov     a,r1
+0A53 3F        2142            addc    a,r7
+0A54 FF        2143            mov     r7,a
+0A55 A2A0      2144            mov     c,_P2_0
+0A57 E4        2145            clr     a
+0A58 33        2146            rlc     a
+0A59 F8        2147            mov     r0,a
+0A5A 7900      2148            mov     r1,#0x00
+0A5C E8        2149            mov     a,r0
+0A5D 2B        2150            add     a,r3
+0A5E FC        2151            mov     r4,a
+0A5F E9        2152            mov     a,r1
+0A60 3F        2153            addc    a,r7
+0A61 FD        2154            mov     r5,a
+0A62           2155   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:423: num2 = P2_7*128 + P2_6*64 + P2_5*32 + P2_4*16 + P2_3*8 + P2_2*4 + P2_1*2 + P2_0*1;
+0A62 A2A7      2156            mov     c,_P2_7
+0A64 E4        2157            clr     a
+0A65 33        2158            rlc     a
+0A66 FB        2159            mov     r3,a
+0A67 E4        2160            clr     a
+0A68 5401      2161            anl     a,#0x01
+0A6A A2E0      2162            mov     c,acc.0
+0A6C CB        2163            xch     a,r3
+0A6D 13        2164            rrc     a
+0A6E CB        2165            xch     a,r3
+0A6F 13        2166            rrc     a
+0A70 CB        2167            xch     a,r3
+0A71 FF        2168            mov     r7,a
+0A72 A2A6      2169            mov     c,_P2_6
+0A74 E4        2170            clr     a
+0A75 33        2171            rlc     a
+0A76 F8        2172            mov     r0,a
+0A77 E4        2173            clr     a
+0A78 5403      2174            anl     a,#0x03
+0A7A A2E0      2175            mov     c,acc.0
+0A7C C8        2176            xch     a,r0
+0A7D 13        2177            rrc     a
+0A7E C8        2178            xch     a,r0
+0A7F 13        2179            rrc     a
+0A80 A2E0      2180            mov     c,acc.0
+0A82 C8        2181            xch     a,r0
+0A83 13        2182            rrc     a
+0A84 C8        2183            xch     a,r0
+0A85 13        2184            rrc     a
+0A86 C8        2185            xch     a,r0
+0A87 F9        2186            mov     r1,a
+0A88 E8        2187            mov     a,r0
+0A89 2B        2188            add     a,r3
+0A8A FB        2189            mov     r3,a
+0A8B E9        2190            mov     a,r1
+0A8C 3F        2191            addc    a,r7
+0A8D FF        2192            mov     r7,a
+0A8E A2A5      2193            mov     c,_P2_5
+0A90 E4        2194            clr     a
+0A91 33        2195            rlc     a
+0A92 F8        2196            mov     r0,a
+0A93 E4        2197            clr     a
+0A94 C4        2198            swap    a
+0A95 23        2199            rl      a
+0A96 54E0      2200            anl     a,#0xe0
+0A98 C8        2201            xch     a,r0
+0A99 C4        2202            swap    a
+0A9A 23        2203            rl      a
+0A9B C8        2204            xch     a,r0
+0A9C 68        2205            xrl     a,r0
+0A9D C8        2206            xch     a,r0
+0A9E 54E0      2207            anl     a,#0xe0
+0AA0 C8        2208            xch     a,r0
+0AA1 68        2209            xrl     a,r0
+0AA2 F9        2210            mov     r1,a
+0AA3 E8        2211            mov     a,r0
+0AA4 2B        2212            add     a,r3
+0AA5 FB        2213            mov     r3,a
+0AA6 E9        2214            mov     a,r1
+0AA7 3F        2215            addc    a,r7
+0AA8 FF        2216            mov     r7,a
+0AA9 A2A4      2217            mov     c,_P2_4
+0AAB E4        2218            clr     a
+0AAC 33        2219            rlc     a
+0AAD F8        2220            mov     r0,a
+0AAE E4        2221            clr     a
+0AAF C4        2222            swap    a
+0AB0 54F0      2223            anl     a,#0xf0
+0AB2 C8        2224            xch     a,r0
+0AB3 C4        2225            swap    a
+0AB4 C8        2226            xch     a,r0
+0AB5 68        2227            xrl     a,r0
+0AB6 C8        2228            xch     a,r0
+0AB7 54F0      2229            anl     a,#0xf0
+0AB9 C8        2230            xch     a,r0
+0ABA 68        2231            xrl     a,r0
+0ABB F9        2232            mov     r1,a
+0ABC E8        2233            mov     a,r0
+0ABD 2B        2234            add     a,r3
+0ABE FB        2235            mov     r3,a
+0ABF E9        2236            mov     a,r1
+0AC0 3F        2237            addc    a,r7
+0AC1 FF        2238            mov     r7,a
+0AC2 A2A3      2239            mov     c,_P2_3
+0AC4 E4        2240            clr     a
+0AC5 33        2241            rlc     a
+0AC6 F8        2242            mov     r0,a
+0AC7 E4        2243            clr     a
+0AC8 C4        2244            swap    a
+0AC9 03        2245            rr      a
+0ACA 54F8      2246            anl     a,#0xf8
+0ACC C8        2247            xch     a,r0
+0ACD C4        2248            swap    a
+0ACE 03        2249            rr      a
+0ACF C8        2250            xch     a,r0
+0AD0 68        2251            xrl     a,r0
+0AD1 C8        2252            xch     a,r0
+0AD2 54F8      2253            anl     a,#0xf8
+0AD4 C8        2254            xch     a,r0
+0AD5 68        2255            xrl     a,r0
+0AD6 F9        2256            mov     r1,a
+0AD7 E8        2257            mov     a,r0
+0AD8 2B        2258            add     a,r3
+0AD9 FB        2259            mov     r3,a
+0ADA E9        2260            mov     a,r1
+0ADB 3F        2261            addc    a,r7
+0ADC FF        2262            mov     r7,a
+0ADD A2A2      2263            mov     c,_P2_2
+0ADF E4        2264            clr     a
+0AE0 33        2265            rlc     a
+0AE1 F8        2266            mov     r0,a
+0AE2 E4        2267            clr     a
+0AE3 C8        2268            xch     a,r0
+0AE4 25E0      2269            add     a,acc
+0AE6 C8        2270            xch     a,r0
+0AE7 33        2271            rlc     a
+0AE8 C8        2272            xch     a,r0
+0AE9 25E0      2273            add     a,acc
+0AEB C8        2274            xch     a,r0
+0AEC 33        2275            rlc     a
+0AED F9        2276            mov     r1,a
+0AEE E8        2277            mov     a,r0
+0AEF 2B        2278            add     a,r3
+0AF0 FB        2279            mov     r3,a
+0AF1 E9        2280            mov     a,r1
+0AF2 3F        2281            addc    a,r7
+0AF3 FF        2282            mov     r7,a
+0AF4 A2A1      2283            mov     c,_P2_1
+0AF6 E4        2284            clr     a
+0AF7 33        2285            rlc     a
+0AF8 F8        2286            mov     r0,a
+0AF9 E4        2287            clr     a
+0AFA C8        2288            xch     a,r0
+0AFB 25E0      2289            add     a,acc
+0AFD C8        2290            xch     a,r0
+0AFE 33        2291            rlc     a
+0AFF F9        2292            mov     r1,a
+0B00 E8        2293            mov     a,r0
+0B01 2B        2294            add     a,r3
+0B02 FB        2295            mov     r3,a
+0B03 E9        2296            mov     a,r1
+0B04 3F        2297            addc    a,r7
+0B05 FF        2298            mov     r7,a
+0B06 A2A0      2299            mov     c,_P2_0
+0B08 E4        2300            clr     a
+0B09 33        2301            rlc     a
+0B0A F8        2302            mov     r0,a
+0B0B 7900      2303            mov     r1,#0x00
+0B0D E8        2304            mov     a,r0
+0B0E 2B        2305            add     a,r3
+0B0F FB        2306            mov     r3,a
+0B10 E9        2307            mov     a,r1
+0B11 3F        2308            addc    a,r7
+0B12 FF        2309            mov     r7,a
+0B13           2310   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:424: if(num == num2)stable=1; 
+0B13 EC        2311            mov     a,r4
+0B14 B50350    2312            cjne    a,ar3,L010027?
+0B17 ED        2313            mov     a,r5
+0B18 B50750    2314            cjne    a,ar7,L010027?
+0B1B 8001      2315            sjmp    L010028?
+0B1D           2316   L010027?:
+0B1D 020100    2317            ljmp    L010010?
+0B20           2318   L010028?:
+0B20 D268      2319            setb    _readBits_stable_1_98
+0B22 020100    2320            ljmp    L010010?
+0B25           2321   L010008?:
+0B25           2322   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:427: else if(select == 2){    
+0B25 EA        2323            mov     a,r2
+0B26 7001      2324            jnz     L010029?
+0B28 020100    2325            ljmp    L010010?
+0B2B           2326   L010029?:
+0B2B           2327   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:428: num = P0_7*128 + P0_6*64 + P0_5*32 + P0_4*16 + P0_3*8 + P0_2*4 + P0_1*2 + P0_0*1;
+0B2B C002      2328            push    ar2
+0B2D A287      2329            mov     c,_P0_7
+0B2F E4        2330            clr     a
+0B30 33        2331            rlc     a
+0B31 F8        2332            mov     r0,a
+0B32 E4        2333            clr     a
+0B33 5401      2334            anl     a,#0x01
+0B35 A2E0      2335            mov     c,acc.0
+0B37 C8        2336            xch     a,r0
+0B38 13        2337            rrc     a
+0B39 C8        2338            xch     a,r0
+0B3A 13        2339            rrc     a
+0B3B C8        2340            xch     a,r0
+0B3C F9        2341            mov     r1,a
+0B3D A286      2342            mov     c,_P0_6
+0B3F E4        2343            clr     a
+0B40 33        2344            rlc     a
+0B41 FA        2345            mov     r2,a
+0B42 E4        2346            clr     a
+0B43 5403      2347            anl     a,#0x03
+0B45 A2E0      2348            mov     c,acc.0
+0B47 CA        2349            xch     a,r2
+0B48 13        2350            rrc     a
+0B49 CA        2351            xch     a,r2
+0B4A 13        2352            rrc     a
+0B4B A2E0      2353            mov     c,acc.0
+0B4D CA        2354            xch     a,r2
+0B4E 13        2355            rrc     a
+0B4F CA        2356            xch     a,r2
+0B50 13        2357            rrc     a
+0B51 CA        2358            xch     a,r2
+0B52 FE        2359            mov     r6,a
+0B53 EA        2360            mov     a,r2
+0B54 28        2361            add     a,r0
+0B55 F8        2362            mov     r0,a
+0B56 EE        2363            mov     a,r6
+0B57 39        2364            addc    a,r1
+0B58 F9        2365            mov     r1,a
+0B59 A285      2366            mov     c,_P0_5
+0B5B E4        2367            clr     a
+0B5C 33        2368            rlc     a
+0B5D FA        2369            mov     r2,a
+0B5E E4        2370            clr     a
+0B5F C4        2371            swap    a
+0B60 23        2372            rl      a
+0B61 54E0      2373            anl     a,#0xe0
+0B63 CA        2374            xch     a,r2
+0B64 C4        2375            swap    a
+0B65 23        2376            rl      a
+0B66 CA        2377            xch     a,r2
+0B67 6A        2378            xrl     a,r2
+0B68 CA        2379            xch     a,r2
+0B69 54E0      2380            anl     a,#0xe0
+0B6B CA        2381            xch     a,r2
+0B6C 6A        2382            xrl     a,r2
+0B6D FE        2383            mov     r6,a
+0B6E EA        2384            mov     a,r2
+0B6F 28        2385            add     a,r0
+0B70 F8        2386            mov     r0,a
+0B71 EE        2387            mov     a,r6
+0B72 39        2388            addc    a,r1
+0B73 F9        2389            mov     r1,a
+0B74 A284      2390            mov     c,_P0_4
+0B76 E4        2391            clr     a
+0B77 33        2392            rlc     a
+0B78 FA        2393            mov     r2,a
+0B79 E4        2394            clr     a
+0B7A C4        2395            swap    a
+0B7B 54F0      2396            anl     a,#0xf0
+0B7D CA        2397            xch     a,r2
+0B7E C4        2398            swap    a
+0B7F CA        2399            xch     a,r2
+0B80 6A        2400            xrl     a,r2
+0B81 CA        2401            xch     a,r2
+0B82 54F0      2402            anl     a,#0xf0
+0B84 CA        2403            xch     a,r2
+0B85 6A        2404            xrl     a,r2
+0B86 FE        2405            mov     r6,a
+0B87 EA        2406            mov     a,r2
+0B88 28        2407            add     a,r0
+0B89 F8        2408            mov     r0,a
+0B8A EE        2409            mov     a,r6
+0B8B 39        2410            addc    a,r1
+0B8C F9        2411            mov     r1,a
+0B8D A283      2412            mov     c,_P0_3
+0B8F E4        2413            clr     a
+0B90 33        2414            rlc     a
+0B91 FA        2415            mov     r2,a
+0B92 E4        2416            clr     a
+0B93 C4        2417            swap    a
+0B94 03        2418            rr      a
+0B95 54F8      2419            anl     a,#0xf8
+0B97 CA        2420            xch     a,r2
+0B98 C4        2421            swap    a
+0B99 03        2422            rr      a
+0B9A CA        2423            xch     a,r2
+0B9B 6A        2424            xrl     a,r2
+0B9C CA        2425            xch     a,r2
+0B9D 54F8      2426            anl     a,#0xf8
+0B9F CA        2427            xch     a,r2
+0BA0 6A        2428            xrl     a,r2
+0BA1 FE        2429            mov     r6,a
+0BA2 EA        2430            mov     a,r2
+0BA3 28        2431            add     a,r0
+0BA4 F8        2432            mov     r0,a
+0BA5 EE        2433            mov     a,r6
+0BA6 39        2434            addc    a,r1
+0BA7 F9        2435            mov     r1,a
+0BA8 A282      2436            mov     c,_P0_2
+0BAA E4        2437            clr     a
+0BAB 33        2438            rlc     a
+0BAC FA        2439            mov     r2,a
+0BAD E4        2440            clr     a
+0BAE CA        2441            xch     a,r2
+0BAF 25E0      2442            add     a,acc
+0BB1 CA        2443            xch     a,r2
+0BB2 33        2444            rlc     a
+0BB3 CA        2445            xch     a,r2
+0BB4 25E0      2446            add     a,acc
+0BB6 CA        2447            xch     a,r2
+0BB7 33        2448            rlc     a
+0BB8 FE        2449            mov     r6,a
+0BB9 EA        2450            mov     a,r2
+0BBA 28        2451            add     a,r0
+0BBB F8        2452            mov     r0,a
+0BBC EE        2453            mov     a,r6
+0BBD 39        2454            addc    a,r1
+0BBE F9        2455            mov     r1,a
+0BBF A281      2456            mov     c,_P0_1
+0BC1 E4        2457            clr     a
+0BC2 33        2458            rlc     a
+0BC3 FA        2459            mov     r2,a
+0BC4 E4        2460            clr     a
+0BC5 CA        2461            xch     a,r2
+0BC6 25E0      2462            add     a,acc
+0BC8 CA        2463            xch     a,r2
+0BC9 33        2464            rlc     a
+0BCA FE        2465            mov     r6,a
+0BCB EA        2466            mov     a,r2
+0BCC 28        2467            add     a,r0
+0BCD F8        2468            mov     r0,a
+0BCE EE        2469            mov     a,r6
+0BCF 39        2470            addc    a,r1
+0BD0 F9        2471            mov     r1,a
+0BD1 A280      2472            mov     c,_P0_0
+0BD3 E4        2473            clr     a
+0BD4 33        2474            rlc     a
+0BD5 FA        2475            mov     r2,a
+0BD6 7E00      2476            mov     r6,#0x00
+0BD8 EA        2477            mov     a,r2
+0BD9 28        2478            add     a,r0
+0BDA FC        2479            mov     r4,a
+0BDB EE        2480            mov     a,r6
+0BDC 39        2481            addc    a,r1
+0BDD FD        2482            mov     r5,a
+0BDE           2483   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:429: num2 = P0_7*128 + P0_6*64 + P0_5*32 + P0_4*16 + P0_3*8 + P0_2*4 + P0_1*2 + P0_0*1;
+0BDE A287      2484            mov     c,_P0_7
+0BE0 E4        2485            clr     a
+0BE1 33        2486            rlc     a
+0BE2 FA        2487            mov     r2,a
+0BE3 E4        2488            clr     a
+0BE4 5401      2489            anl     a,#0x01
+0BE6 A2E0      2490            mov     c,acc.0
+0BE8 CA        2491            xch     a,r2
+0BE9 13        2492            rrc     a
+0BEA CA        2493            xch     a,r2
+0BEB 13        2494            rrc     a
+0BEC CA        2495            xch     a,r2
+0BED FE        2496            mov     r6,a
+0BEE A286      2497            mov     c,_P0_6
+0BF0 E4        2498            clr     a
+0BF1 33        2499            rlc     a
+0BF2 F8        2500            mov     r0,a
+0BF3 E4        2501            clr     a
+0BF4 5403      2502            anl     a,#0x03
+0BF6 A2E0      2503            mov     c,acc.0
+0BF8 C8        2504            xch     a,r0
+0BF9 13        2505            rrc     a
+0BFA C8        2506            xch     a,r0
+0BFB 13        2507            rrc     a
+0BFC A2E0      2508            mov     c,acc.0
+0BFE C8        2509            xch     a,r0
+0BFF 13        2510            rrc     a
+0C00 C8        2511            xch     a,r0
+0C01 13        2512            rrc     a
+0C02 C8        2513            xch     a,r0
+0C03 F9        2514            mov     r1,a
+0C04 E8        2515            mov     a,r0
+0C05 2A        2516            add     a,r2
+0C06 FA        2517            mov     r2,a
+0C07 E9        2518            mov     a,r1
+0C08 3E        2519            addc    a,r6
+0C09 FE        2520            mov     r6,a
+0C0A A285      2521            mov     c,_P0_5
+0C0C E4        2522            clr     a
+0C0D 33        2523            rlc     a
+0C0E F8        2524            mov     r0,a
+0C0F E4        2525            clr     a
+0C10 C4        2526            swap    a
+0C11 23        2527            rl      a
+0C12 54E0      2528            anl     a,#0xe0
+0C14 C8        2529            xch     a,r0
+0C15 C4        2530            swap    a
+0C16 23        2531            rl      a
+0C17 C8        2532            xch     a,r0
+0C18 68        2533            xrl     a,r0
+0C19 C8        2534            xch     a,r0
+0C1A 54E0      2535            anl     a,#0xe0
+0C1C C8        2536            xch     a,r0
+0C1D 68        2537            xrl     a,r0
+0C1E F9        2538            mov     r1,a
+0C1F E8        2539            mov     a,r0
+0C20 2A        2540            add     a,r2
+0C21 FA        2541            mov     r2,a
+0C22 E9        2542            mov     a,r1
+0C23 3E        2543            addc    a,r6
+0C24 FE        2544            mov     r6,a
+0C25 A284      2545            mov     c,_P0_4
+0C27 E4        2546            clr     a
+0C28 33        2547            rlc     a
+0C29 F8        2548            mov     r0,a
+0C2A E4        2549            clr     a
+0C2B C4        2550            swap    a
+0C2C 54F0      2551            anl     a,#0xf0
+0C2E C8        2552            xch     a,r0
+0C2F C4        2553            swap    a
+0C30 C8        2554            xch     a,r0
+0C31 68        2555            xrl     a,r0
+0C32 C8        2556            xch     a,r0
+0C33 54F0      2557            anl     a,#0xf0
+0C35 C8        2558            xch     a,r0
+0C36 68        2559            xrl     a,r0
+0C37 F9        2560            mov     r1,a
+0C38 E8        2561            mov     a,r0
+0C39 2A        2562            add     a,r2
+0C3A FA        2563            mov     r2,a
+0C3B E9        2564            mov     a,r1
+0C3C 3E        2565            addc    a,r6
+0C3D FE        2566            mov     r6,a
+0C3E A283      2567            mov     c,_P0_3
+0C40 E4        2568            clr     a
+0C41 33        2569            rlc     a
+0C42 F8        2570            mov     r0,a
+0C43 E4        2571            clr     a
+0C44 C4        2572            swap    a
+0C45 03        2573            rr      a
+0C46 54F8      2574            anl     a,#0xf8
+0C48 C8        2575            xch     a,r0
+0C49 C4        2576            swap    a
+0C4A 03        2577            rr      a
+0C4B C8        2578            xch     a,r0
+0C4C 68        2579            xrl     a,r0
+0C4D C8        2580            xch     a,r0
+0C4E 54F8      2581            anl     a,#0xf8
+0C50 C8        2582            xch     a,r0
+0C51 68        2583            xrl     a,r0
+0C52 F9        2584            mov     r1,a
+0C53 E8        2585            mov     a,r0
+0C54 2A        2586            add     a,r2
+0C55 FA        2587            mov     r2,a
+0C56 E9        2588            mov     a,r1
+0C57 3E        2589            addc    a,r6
+0C58 FE        2590            mov     r6,a
+0C59 A282      2591            mov     c,_P0_2
+0C5B E4        2592            clr     a
+0C5C 33        2593            rlc     a
+0C5D F8        2594            mov     r0,a
+0C5E E4        2595            clr     a
+0C5F C8        2596            xch     a,r0
+0C60 25E0      2597            add     a,acc
+0C62 C8        2598            xch     a,r0
+0C63 33        2599            rlc     a
+0C64 C8        2600            xch     a,r0
+0C65 25E0      2601            add     a,acc
+0C67 C8        2602            xch     a,r0
+0C68 33        2603            rlc     a
+0C69 F9        2604            mov     r1,a
+0C6A E8        2605            mov     a,r0
+0C6B 2A        2606            add     a,r2
+0C6C FA        2607            mov     r2,a
+0C6D E9        2608            mov     a,r1
+0C6E 3E        2609            addc    a,r6
+0C6F FE        2610            mov     r6,a
+0C70 A281      2611            mov     c,_P0_1
+0C72 E4        2612            clr     a
+0C73 33        2613            rlc     a
+0C74 F8        2614            mov     r0,a
+0C75 E4        2615            clr     a
+0C76 C8        2616            xch     a,r0
+0C77 25E0      2617            add     a,acc
+0C79 C8        2618            xch     a,r0
+0C7A 33        2619            rlc     a
+0C7B F9        2620            mov     r1,a
+0C7C E8        2621            mov     a,r0
+0C7D 2A        2622            add     a,r2
+0C7E FA        2623            mov     r2,a
+0C7F E9        2624            mov     a,r1
+0C80 3E        2625            addc    a,r6
+0C81 FE        2626            mov     r6,a
+0C82 A280      2627            mov     c,_P0_0
+0C84 E4        2628            clr     a
+0C85 33        2629            rlc     a
+0C86 F8        2630            mov     r0,a
+0C87 7900      2631            mov     r1,#0x00
+0C89 E8        2632            mov     a,r0
+0C8A 2A        2633            add     a,r2
+0C8B FB        2634            mov     r3,a
+0C8C E9        2635            mov     a,r1
+0C8D 3E        2636            addc    a,r6
+0C8E FF        2637            mov     r7,a
+0C8F           2638   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:430: if(num == num2)stable=1;
+0C8F EC        2639            mov     a,r4
+0C90 B50310    2640            cjne    a,ar3,L010030?
+0C93 ED        2641            mov     a,r5
+0C94 B50710    2642            cjne    a,ar7,L010030?
+0C97 8001      2643            sjmp    L010031?
+0C99           2644   L010030?:
+0C99 D002      2645            pop     ar2
+0C9B 020100    2646            ljmp    L010010?
+0C9E           2647   L010031?:
+0C9E D002      2648            pop     ar2
+0CA0 D268      2649            setb    _readBits_stable_1_98
+0CA2 020100    2650            ljmp    L010010?
+0CA5           2651   L010012?:
+0CA5           2652   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:433: return num;
+0CA5 8C82      2653            mov     dpl,r4
+0CA7 8D83      2654            mov     dph,r5
+0CA9 22        2655            ret
+0CAA           2656   ;------------------------------------------------------------
+0CAA           2657   ;Allocation info for local variables in function 'waitms'
+0CAA           2658   ;------------------------------------------------------------
+0CAA           2659   ;------------------------------------------------------------
+0CAA           2660   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:437: void waitms (void){
+0CAA           2661   ;        -----------------------------------------
+0CAA           2662   ;         function waitms
+0CAA           2663   ;        -----------------------------------------
+0CAA           2664   _waitms:
+0CAA           2665   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:446: _endasm;
+0CAA           2666            
+0CAA 7A01      2667            mov R2, #1
+0CAC           2668            L3:
+0CAC 7901      2669            mov R1, #1
+0CAE           2670            L2:
+0CAE 78B8      2671            mov R0, #184
+0CB0           2672            L1:
+0CB0 D810      2673            djnz R0, L1 ; 2 machine cycles-> 0.5425347us*184=100us
+0CB2 D9D0      2674            djnz R1, L2 ; 100us*10=1ms
+0CB4 DA90      2675            djnz R2, L3 ; 1ms*25= 25ms
+0CB6 22        2676            ret
+0CB7 22        2677            ret
+0CB8           2678   ;------------------------------------------------------------
+0CB8           2679   ;Allocation info for local variables in function 'SPIWrite'
+0CB8           2680   ;------------------------------------------------------------
+0CB8           2681   ;value                     Allocated to registers r2 
+0CB8           2682   ;------------------------------------------------------------
+0CB8           2683   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:463: void SPIWrite(unsigned char value)
+0CB8           2684   ;        -----------------------------------------
+0CB8           2685   ;         function SPIWrite
+0CB8           2686   ;        -----------------------------------------
+0CB8           2687   _SPIWrite:
+0CB8 AA82      2688            mov     r2,dpl
+0CBA           2689   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:464: {   SPSTA&=(~SPIF); // Clear the SPIF flag in SPSTA
+0CBA 53C47F    2690            anl     _SPSTA,#0x7F
+0CBD           2691   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:465: SPDAT=value;
+0CBD 8AC5      2692            mov     _SPDAT,r2
+0CBF           2693   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:466: while((SPSTA & SPIF)!=SPIF); //Wait for transmission to end
+0CBF           2694   L012001?:
+0CBF 7480      2695            mov     a,#0x80
+0CC1 55C4      2696            anl     a,_SPSTA
+0CC3 FA        2697            mov     r2,a
+0CC4 BA8050    2698            cjne    r2,#0x80,L012001?
+0CC7 22        2699            ret
+0CC8           2700   ;------------------------------------------------------------
+0CC8           2701   ;Allocation info for local variables in function 'GetADC'
+0CC8           2702   ;------------------------------------------------------------
+0CC8           2703   ;channel                   Allocated to registers r2 
+0CC8           2704   ;adc                       Allocated to registers r2 r3 
+0CC8           2705   ;------------------------------------------------------------
+0CC8           2706   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:470: unsigned int GetADC(unsigned char channel)
+0CC8           2707   ;        -----------------------------------------
+0CC8           2708   ;         function GetADC
+0CC8           2709   ;        -----------------------------------------
+0CC8           2710   _GetADC:
+0CC8 AA82      2711            mov     r2,dpl
+0CCA           2712   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:475: SPCON&=(~SPEN); // Disable SPI
+0CCA 53C3BF    2713            anl     _SPCON,#0xBF
+0CCD           2714   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:476: SPCON=MSTR|CPOL|CPHA|SPR1|SPR0|SSDIS;
+0CCD 75C33F    2715            mov     _SPCON,#0x3F
+0CD0           2716   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:477: SPCON|=SPEN; // Enable SPI
+0CD0 43C340    2717            orl     _SPCON,#0x40
+0CD3           2718   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:479: CE=0; // Activate the MCP3004 ADC.
+0CD3 C294      2719            clr     _P1_4
+0CD5           2720   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:480: SPIWrite(channel|0x18); // Send start bit, single/diff* bit, D2, D1, and D0 bits.
+0CD5 7418      2721            mov     a,#0x18
+0CD7 4A        2722            orl     a,r2
+0CD8 F582      2723            mov     dpl,a
+0CDA 120100    2724            lcall   _SPIWrite
+0CDD           2725   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:481: for(adc=0; adc<10; adc++); // Wait for S/H to setup
+0CDD 7A0A      2726            mov     r2,#0x0A
+0CDF 7B00      2727            mov     r3,#0x00
+0CE1           2728   L013003?:
+0CE1 1A        2729            dec     r2
+0CE2 BAFFD0    2730            cjne    r2,#0xff,L013009?
+0CE5 1B        2731            dec     r3
+0CE6           2732   L013009?:
+0CE6 EA        2733            mov     a,r2
+0CE7 4B        2734            orl     a,r3
+0CE8 7001      2735            jnz     L013003?
+0CEA           2736   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:482: SPIWrite(0x55); // Read bits 9 down to 4
+0CEA 758255    2737            mov     dpl,#0x55
+0CED 120100    2738            lcall   _SPIWrite
+0CF0           2739   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:483: adc=((SPDAT&0x3f)*0x100);                   
+0CF0 743F      2740            mov     a,#0x3F
+0CF2 55C5      2741            anl     a,_SPDAT
+0CF4 FB        2742            mov     r3,a
+0CF5 7A00      2743            mov     r2,#0x00
+0CF7           2744   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:484: SPIWrite(0x55);// Read bits 3 down to 0
+0CF7 758255    2745            mov     dpl,#0x55
+0CFA C002      2746            push    ar2
+0CFC C003      2747            push    ar3
+0CFE 120100    2748            lcall   _SPIWrite
+0D01 D003      2749            pop     ar3
+0D03 D002      2750            pop     ar2
+0D05           2751   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:485: CE=1; // Deactivate the MCP3004 ADC.
+0D05 D294      2752            setb    _P1_4
+0D07           2753   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:486: adc+=(SPDAT&0xf0); // SPDR contains the low part of the result. 
+0D07 74F0      2754            mov     a,#0xF0
+0D09 55C5      2755            anl     a,_SPDAT
+0D0B FC        2756            mov     r4,a
+0D0C 7D00      2757            mov     r5,#0x00
+0D0E EC        2758            mov     a,r4
+0D0F 2A        2759            add     a,r2
+0D10 FA        2760            mov     r2,a
+0D11 ED        2761            mov     a,r5
+0D12 3B        2762            addc    a,r3
+0D13           2763   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:487: adc>>=4;
+0D13 C4        2764            swap    a
+0D14 CA        2765            xch     a,r2
+0D15 C4        2766            swap    a
+0D16 540F      2767            anl     a,#0x0f
+0D18 6A        2768            xrl     a,r2
+0D19 CA        2769            xch     a,r2
+0D1A 540F      2770            anl     a,#0x0f
+0D1C CA        2771            xch     a,r2
+0D1D 6A        2772            xrl     a,r2
+0D1E CA        2773            xch     a,r2
+0D1F           2774   ;        C:\Users\Patrick\Desktop\Robot-ArmControl\MK2_StableStephane.c:489: return adc;
+0D1F 8A82      2775            mov     dpl,r2
+0D21 F583      2776            mov     dph,a
+0D23 22        2777            ret
+0D24           2778            rseg R_CSEG
+0D24           2779   
+0000           2780            rseg R_XINIT
+0000           2781   
+0000           2782            rseg R_CONST
+0000           2783   __str_0:
+0000 1B        2784            db 0x1B
+0001 5B25643B  2785            db '[%d;%dH'
+     256448
+0008 00        2786            db 0x00
+0009           2787   __str_1:
+0009 25692020  2788            db '%i    '
+     2020
+000F 00        2789            db 0x00
+0010           2790   __str_2:
+0010 25692020  2791            db '%i     '
+     202020
+0017 00        2792            db 0x00
+0018           2793   __str_3:
+0018 1B        2794            db 0x1B
+0019 5B303B33  2795            db '[0;3%d;4%dm'
+     25643B34
+     25646D
+0024 00        2796            db 0x00
+0025           2797   __str_4:
+0025 1B        2798            db 0x1B
+0026 5B324A    2799            db '[2J'
+0029 00        2800            db 0x00
+002A           2801   __str_5:
+002A 53657470  2802            db 'Setpoint Angle   ::: '
+     6F696E74
+     20416E67
+     6C652020
+     203A3A3A
+     20
+003F 00        2803            db 0x00
+0040           2804   __str_6:
+0040 0A        2805            db 0x0A
+0041 4D6F746F  2806            db 'Motor Angle      :::'
+     7220416E
+     676C6520
+     20202020
+     203A3A3A
+0055 00        2807            db 0x00
+0056           2808   __str_7:
+0056 0A        2809            db 0x0A
+0057 416E6775  2810            db 'Angular PWM      ::: '
+     6C617220
+     50574D20
+     20202020
+     203A3A3A
+     20
+006C 00        2811            db 0x00
+006D           2812   __str_8:
+006D 0A        2813            db 0x0A
+006E 0A        2814            db 0x0A
+006F 4C696E65  2815            db 'Linear Setpoint  ::: '
+     61722053
+     6574706F
+     696E7420
+     203A3A3A
+     20
+0084 00        2816            db 0x00
+0085           2817   __str_9:
+0085 0A        2818            db 0x0A
+0086 4C696E20  2819            db 'Lin Motor y-Pos  ::: '
+     4D6F746F
+     7220792D
+     506F7320
+     203A3A3A
+     20
+009B 00        2820            db 0x00
+009C           2821   __str_10:
+009C 0A        2822            db 0x0A
+009D 4C696E65  2823            db 'Linear PWM'
+     61722050
+     574D
+00A7 09        2824            db 0x09
+00A8 20202020  2825            db '     ::: '
+     203A3A3A
+     20
+00B1 00        2826            db 0x00
+00B2           2827   __str_11:
+00B2 53776974  2828            db 'Switch 5V'
+     63682035
+     56
+00BB 00        2829            db 0x00
+00BC           2830   
+002E           2831            CSEG
+002E           2832   
+002E           2833   end
