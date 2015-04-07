@@ -149,14 +149,17 @@ unsigned char _c51_external_startup(void)
  */
 void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 {
+	
 		/* STEPHANE's ANGULAR MOTOR */
 		angSetPoint = GetADC(0)/3.196;	   //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
 		printf( GOTO_YX, 1, 22 );
 		printf("%i    ", angSetPoint);
 		
 		printf( GOTO_YX, 2, 22 );
-		angPosition = decode(1)/33.3333;          //HCTL1 (Sensor Resolution*4/360)*(Gear Ratio) = 6*4*500/360 = 33.333333
-		printf("%i     ", angPosition);
+		angPosition = decode(1); //33.3333;          //HCTL1 (Sensor Resolution*4/360)*(Gear Ratio) = 6*4*500/360 = 33.333333
+		printf("%i     ", angPosition/24);
+		printf( GOTO_YX, 2, 40 );
+		printf("Quadrature Count ::: %i      ", angPosition);
 		
 		/* MANUAL MOTOR POSITION TO COUNTERACT EM INTERFERENCE */
 		/*if(abs(angPosition - prevangPosition) > 4){
@@ -196,6 +199,7 @@ void it_timer2(void) interrupt 5 /* interrupt address is 0x002b */
 		//printf( GOTO_YX, 9, 22);
 		//printf("%i     ", linposition);
 		linearOverflowCount(linposition);
+		
 		linposition = (linposition + (count*3686))/56;
 		printf( GOTO_YX, 6, 22 );
 		printf("%i     ", linposition);
@@ -233,8 +237,22 @@ void main (void)
     /*PWM to 0 point First*/
 	while(P1_3 == 0){
 		RH0 = 0;
-	}
+		printf( GOTO_YX, 1, 1);
+		printf("Setpoint Angle   ::: ");			//1
+		/* STEPHANE's ANGULAR MOTOR */
+		angSetPoint = GetADC(0)/3.196;	   //Angular Pot Reading in degrees TODO: Not reading for like 20 degrees around 0, measure actual angle to ensure precision.
+		printf( GOTO_YX, 1, 22 );
+		printf("%i    ", angSetPoint);
+		
+		printf( GOTO_YX, 5, 1);
+		printf("Linear Setpoint  ::: ");		//5
+		/* LINEAR ACTUATION MOTOR */
+		linSetPoint = GetADC(1);	//Linear Pot Reading out of 1000
+		printf( GOTO_YX, 5, 22 );
+		printf("%i    ", linSetPoint);
 	
+	}
+		
 	printf( GOTO_YX, 1, 1);
 	printf("Setpoint Angle   ::: ");			//1
 	printf("\nMotor Angle      :::");			//2
@@ -254,19 +272,15 @@ void main (void)
    	
     while(1){
     	
-    	printf( FORE_BACK, COLOR_BLACK, COLOR_WHITE );
-    	printf( CLEAR_SCREEN );
-    	
-    	printf( GOTO_YX, 1, 1);
-		printf("Setpoint Angle   ::: ");			//1
-		printf("\nMotor Angle      :::");			//2
-    	printf("\nAngular PWM      ::: ");			//3
-    
-    	printf("\n\nLinear Setpoint  ::: ");		//5
-    	printf("\nLin Motor y-Pos  ::: ");			//6
-    	printf("\nLinear PWM	     ::: ");		//7
-    	
-    	if(P1_3 == 1)printf("\n\nSwitch 5V");   //resetHCTL(2); /
+    	if(P1_3 == 0){
+    	printf( GOTO_YX, 15, 1);
+    	printf("\rSW ::: GND");   //resetHCTL(2);
+    	}
+    	else if (P1_3 == 1){
+    	( GOTO_YX, 15, 1);
+    	printf("\rSW ::: 5V");
+    	resetHCTL(2);
+    	}
     }
 }
 
